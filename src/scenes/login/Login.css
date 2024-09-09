@@ -1,0 +1,128 @@
+/* Login.css */
+
+body {
+  margin: 0;
+  font-family: 'Source Sans Pro', sans-serif;
+  background-color: #f4f4f4;
+}
+
+.login-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background-color: var(--background-default);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+header {
+  font-size: 0.9rem;
+  color: var(--neutral-main);
+  margin-bottom: 10px;
+}
+
+header i {
+  font-style: italic;
+}
+
+.logo {
+  width: 100px;
+  height: auto;
+  margin-bottom: 20px;
+}
+
+.title {
+  font-size: 1.8rem;
+  color: var(--primary-main);
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+form {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: var(--neutral-light);
+  border-radius: 8px;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+}
+
+.email,
+.password {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.email input,
+.password input {
+  width: 100%;
+  padding: 10px;
+  font-size: 1rem;
+  border: 1px solid var(--grey-400);
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.email label,
+.password label {
+  position: absolute;
+  top: 50%;
+  left: 10px;
+  transform: translateY(-50%);
+  font-size: 0.9rem;
+  color: var(--grey-600);
+  pointer-events: none;
+  transition: 0.3s;
+}
+
+.email input:focus + label,
+.password input:focus + label,
+.email input:not(:placeholder-shown) + label,
+.password input:not(:placeholder-shown) + label {
+  top: -10px;
+  left: 0;
+  font-size: 0.75rem;
+  color: var(--primary-main);
+}
+
+button {
+  width: 100%;
+  padding: 10px;
+  font-size: 1rem;
+  color: #fff;
+  background-color: var(--primary-main);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+button:hover {
+  background-color: var(--primary-dark);
+}
+
+.status {
+  width: 24px;
+  height: 24px;
+  display: block;
+  margin: 10px auto;
+}
+
+.error {
+  color: var(--redAccent-500);
+  font-size: 0.9rem;
+  text-align: center;
+  display: block;
+}
+
+.success {
+  color: var(--greenAccent-500);
+  font-size: 0.9rem;
+  text-align: center;
+  display: block;
+}

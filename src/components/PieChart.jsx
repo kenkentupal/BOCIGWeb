@@ -1,11 +1,41 @@
+import { useState, useEffect } from "react";
+import { getFirestore, collection, getDocs } from "firebase/firestore";
 import { ResponsivePie } from "@nivo/pie";
 import { tokens } from "../theme";
 import { useTheme } from "@mui/material";
-import { mockPieData as data } from "../data/mockData";
 
 const PieChart = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+  const [data, setData] = useState([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const db = getFirestore();
+      const resultTableRef = collection(db, "ResultTable");
+      const querySnapshot = await getDocs(resultTableRef);
+      const nationalityCount = {};
+
+      querySnapshot.forEach((doc) => {
+        const nationality = doc.get("Nationality");
+        if (nationality) {
+          nationalityCount[nationality] = (nationalityCount[nationality] || 0) + 1;
+        }
+      });
+
+      // Convert to the format needed by ResponsivePie
+      const formattedData = Object.keys(nationalityCount).map(key => ({
+        id: key,
+        label: `${key} (${nationalityCount[key]})`, // Show nationality and count
+        value: nationalityCount[key],
+      }));
+
+      setData(formattedData);
+    };
+
+    fetchData();
+  }, []);
+
   return (
     <ResponsivePie
       data={data}
@@ -50,7 +80,7 @@ const PieChart = () => {
       arcLinkLabelsTextColor={colors.grey[100]}
       arcLinkLabelsThickness={2}
       arcLinkLabelsColor={{ from: "color" }}
-      enableArcLabels={false}
+      enableArcLabels={true} // Ensure arc labels are enabled
       arcLabelsRadiusOffset={0.4}
       arcLabelsSkipAngle={7}
       arcLabelsTextColor={{

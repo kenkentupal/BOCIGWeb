@@ -1,0 +1,25 @@
+.app {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar {
+  height: 60px; /* Adjust as needed */
+  background-color: #fff; /* Example color */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Example shadow */
+}
+
+.sidebar {
+  width: 250px; /* Adjust as needed */
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  background-color: #f4f4f4; /* Example color */
+}

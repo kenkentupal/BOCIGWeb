@@ -1,62 +1,82 @@
-import { Box } from "@mui/material";
-import { DataGrid, GridToolbar } from "@mui/x-data-grid";
-import { tokens } from "../../theme";
-import { mockDataContacts } from "../../data/mockData";
-import Header from "../../components/Header";
+import { useEffect, useState } from "react";
+import { Box, Modal, IconButton, Typography, Button } from "@mui/material";
 import { useTheme } from "@mui/material";
+import { DataGrid, GridToolbar } from "@mui/x-data-grid";
+import { collection, getDocs } from "firebase/firestore";
+import { getStorage, ref, getDownloadURL } from "firebase/storage";
+import { db } from "../../Firebase"; // Update this import to match your actual Firebase config file
+import Header from "../../components/Header";
+import { tokens } from "../../theme";
+import ImageIcon from '@mui/icons-material/Image'; // You can use any icon for the image
+import CloseIcon from '@mui/icons-material/Close'; // Import the Close icon
 
 const Contacts = () => {
+  const [data, setData] = useState([]);
+  const [open, setOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState("");
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+  const storage = getStorage();
 
   const columns = [
-    { field: "id", headerName: "ID", flex: 0.5 },
-    { field: "registrarId", headerName: "Registrar ID" },
+    { field: "id", headerName: "ID", flex: 1 },
+    { field: "Time", headerName: "Time", flex: 1 },
+    { field: "First Name", headerName: "First Name", flex: 1 },
+    { field: "Last Name", headerName: "Last Name", flex: 1 },
+    { field: "Nationality", headerName: "Country Code", flex: 1 },
+    { field: "Gender", headerName: "Gender", flex: 1 },
+    { field: "Document Number", headerName: "Passport ID", flex: 1 },
+    { field: "Date of Birth", headerName: "Date of Birth", flex: 1 },
+    { field: "Date", headerName: "Date", flex: 1 },
+    { field: "Valid Until", headerName: "Valid Until", flex: 1 },
+    { field: "MRZ1", headerName: "MRZ1", flex: 1 },
+    { field: "MRZ2", headerName: "MRZ2", flex: 1 },
     {
-      field: "name",
-      headerName: "Name",
+      field: "image",
+      headerName: "Image",
       flex: 1,
-      cellClassName: "name-column--cell",
-    },
-    {
-      field: "age",
-      headerName: "Age",
-      type: "number",
-      headerAlign: "left",
-      align: "left",
-    },
-    {
-      field: "phone",
-      headerName: "Phone Number",
-      flex: 1,
-    },
-    {
-      field: "email",
-      headerName: "Email",
-      flex: 1,
-    },
-    {
-      field: "address",
-      headerName: "Address",
-      flex: 1,
-    },
-    {
-      field: "city",
-      headerName: "City",
-      flex: 1,
-    },
-    {
-      field: "zipCode",
-      headerName: "Zip Code",
-      flex: 1,
+      renderCell: (params) => {
+        const { id } = params.row;
+        const handleClick = async () => {
+          try {
+            const imageUrl = await getDownloadURL(ref(storage, `Passport/${id}.jpg`)); // Adjust path as needed
+            setSelectedImage(imageUrl);
+            setOpen(true);
+          } catch (error) {
+            console.error("Error fetching image URL: ", error);
+          }
+        };
+        return (
+          <IconButton onClick={handleClick}>
+            <ImageIcon />
+          </IconButton>
+        );
+      },
     },
   ];
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, "ResultTable"));
+        const data = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setData(data);
+      } catch (error) {
+        console.error("Error fetching Firestore data: ", error);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   return (
     <Box m="20px">
       <Header
-        title="CONTACTS"
-        subtitle="List of Contacts for Future Reference"
+        title="Travelers Information"
+        subtitle="List of Travelers Information"
       />
       <Box
         m="40px 0 0 0"
@@ -91,10 +111,52 @@ const Contacts = () => {
         }}
       >
         <DataGrid
-          rows={mockDataContacts}
+          rows={data}
           columns={columns}
           components={{ Toolbar: GridToolbar }}
+          autoHeight
         />
+        <Modal
+          open={open}
+          onClose={() => setOpen(false)}
+          aria-labelledby="image-modal-title"
+          aria-describedby="image-modal-description"
+        >
+          <Box
+            sx={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              width: '80%',
+              bgcolor: 'background.paper',
+              boxShadow: 24,
+              p: 4,
+              textAlign: 'center',
+              position: 'relative', // Ensure this is positioned relative to contain the absolute positioning of the close button
+            }}
+          >
+            <IconButton
+              onClick={() => setOpen(false)}
+              sx={{
+                position: 'absolute',
+                top: 8,
+                right: 8,
+                color: colors.grey[800], // Adjust color as needed
+              }}
+            >
+              <CloseIcon />
+            </IconButton>
+            <Typography id="image-modal-title" variant="h6" component="h2">
+              Image Preview
+            </Typography>
+            <img
+              src={selectedImage}
+              alt="Preview"
+              style={{ maxWidth: '100%', maxHeight: '80vh' }}
+            />
+          </Box>
+        </Modal>
       </Box>
     </Box>
   );

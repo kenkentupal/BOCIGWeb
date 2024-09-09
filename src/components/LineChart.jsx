@@ -1,11 +1,117 @@
 import { ResponsiveLine } from "@nivo/line";
 import { useTheme } from "@mui/material";
 import { tokens } from "../theme";
-import { mockLineData as data } from "../data/mockData";
+import { useState, useEffect } from "react";
+import { getFirestore, collection, getDocs } from "firebase/firestore";
+
+// Firestore initialization
+const db = getFirestore();
 
 const LineChart = ({ isCustomLineColors = false, isDashboard = false }) => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+
+  const [data, setData] = useState([
+    {
+      id: "DVO",
+      color: "hsl(342, 70%, 50%)",
+      data: [
+        { x: "Jan", y: 0 },
+        { x: "Feb", y: 0 },
+        { x: "Mar", y: 0 },
+        { x: "Apr", y: 0 },
+        { x: "May", y: 0 },
+        { x: "Jun", y: 0 },
+        { x: "Jul", y: 0 },
+        { x: "Aug", y: 0 },
+        { x: "Sep", y: 0 },
+        { x: "Oct", y: 0 },
+        { x: "Nov", y: 0 },
+        { x: "Dec", y: 0 },
+      ],
+    },
+    {
+      id: "CLK",
+      color: "hsl(210, 70%, 50%)",
+      data: [
+        { x: "Jan", y: 0 },
+        { x: "Feb", y: 0 },
+        { x: "Mar", y: 0 },
+        { x: "Apr", y: 0 },
+        { x: "May", y: 0 },
+        { x: "Jun", y: 0 },
+        { x: "Jul", y: 0 },
+        { x: "Aug", y: 0 },
+        { x: "Sep", y: 0 },
+        { x: "Oct", y: 0 },
+        { x: "Nov", y: 0 },
+        { x: "Dec", y: 0 },
+      ],
+    },
+    {
+      id: "CEB",
+      color: "hsl(49, 70%, 50%)",
+      data: [
+        { x: "Jan", y: 0 },
+        { x: "Feb", y: 0 },
+        { x: "Mar", y: 0 },
+        { x: "Apr", y: 0 },
+        { x: "May", y: 0 },
+        { x: "Jun", y: 0 },
+        { x: "Jul", y: 0 },
+        { x: "Aug", y: 0 },
+        { x: "Sep", y: 0 },
+        { x: "Oct", y: 0 },
+        { x: "Nov", y: 0 },
+        { x: "Dec", y: 0 },
+      ],
+    },
+    {
+      id: "MNL",
+      color: "hsl(121, 70%, 50%)",
+      data: [], // To be updated with Firestore data
+    },
+  ]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const resultTableRef = collection(db, "ResultTable");
+      const querySnapshot = await getDocs(resultTableRef);
+
+      // Initialize month counts
+      const monthCounts = {
+        Jan: 0, Feb: 0, Mar: 0, Apr: 0, May: 0, Jun: 0, Jul: 0, Aug: 0, Sep: 0, Oct: 0, Nov: 0, Dec: 0,
+      };
+
+      // Process each document
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        const date = data.Date; // assuming the date field is named "Date"
+        if (date) {
+          const month = new Date(date).toLocaleString("default", { month: "short" });
+          if (monthCounts.hasOwnProperty(month)) {
+            monthCounts[month]++;
+          }
+        }
+      });
+
+      // Convert monthCounts to array format
+      const mnlData = Object.keys(monthCounts).map((month) => ({
+        x: month,
+        y: monthCounts[month],
+      }));
+
+      // Update the chart data
+      setData((prevData) => {
+        const updatedData = prevData.map((serie) =>
+          serie.id === "MNL" ? { ...serie, data: mnlData } : serie
+        );
+        return updatedData;
+      });
+    };
+
+    fetchData();
+  }, []);
 
   return (
     <ResponsiveLine
@@ -43,14 +149,14 @@ const LineChart = ({ isCustomLineColors = false, isDashboard = false }) => {
           },
         },
       }}
-      colors={isDashboard ? { datum: "color" } : { scheme: "nivo" }} // added
+      colors={isCustomLineColors ? { datum: "color" } : { scheme: "nivo" }}
       margin={{ top: 50, right: 110, bottom: 50, left: 60 }}
       xScale={{ type: "point" }}
       yScale={{
         type: "linear",
         min: "auto",
         max: "auto",
-        stacked: true,
+        stacked: false,
         reverse: false,
       }}
       yFormat=" >-.2f"
@@ -62,17 +168,17 @@ const LineChart = ({ isCustomLineColors = false, isDashboard = false }) => {
         tickSize: 0,
         tickPadding: 5,
         tickRotation: 0,
-        legend: isDashboard ? undefined : "transportation", // added
+        legend: isDashboard ? undefined : "Month",
         legendOffset: 36,
         legendPosition: "middle",
       }}
       axisLeft={{
         orient: "left",
-        tickValues: 5, // added
+        tickValues: 5,
         tickSize: 3,
         tickPadding: 5,
         tickRotation: 0,
-        legend: isDashboard ? undefined : "count", // added
+        legend: isDashboard ? undefined : "Total",
         legendOffset: -40,
         legendPosition: "middle",
       }}

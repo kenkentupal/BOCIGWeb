@@ -1,21 +1,54 @@
+import React, { useEffect, useState } from 'react';
 import { Box, Button, IconButton, Typography, useTheme } from "@mui/material";
 import { tokens } from "../../theme";
 import { mockTransactions } from "../../data/mockData";
 import DownloadOutlinedIcon from "@mui/icons-material/DownloadOutlined";
-import EmailIcon from "@mui/icons-material/Email";
-import PointOfSaleIcon from "@mui/icons-material/PointOfSale";
-import PersonAddIcon from "@mui/icons-material/PersonAdd";
-import TrafficIcon from "@mui/icons-material/Traffic";
+import AirplanemodeActiveIcon from "@mui/icons-material/AirplanemodeActive";
 import Header from "../../components/Header";
 import LineChart from "../../components/LineChart";
 import GeographyChart from "../../components/GeographyChart";
 import BarChart from "../../components/BarChart";
 import StatBox from "../../components/StatBox";
 import ProgressCircle from "../../components/ProgressCircle";
+import PieChart from "../../components/PieChart";
+import { getFirestore, collection, getDocs } from "firebase/firestore";
 
 const Dashboard = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+  const [totalUsers, setTotalUsers] = useState(0);
+
+  useEffect(() => {
+    const fetchTotalUsers = async () => {
+      const db = getFirestore();
+      const usersCollection = collection(db, 'ResultTable');
+      const usersSnapshot = await getDocs(usersCollection);
+      setTotalUsers(usersSnapshot.size);
+    };
+
+    fetchTotalUsers();
+  }, []);
+
+  const pieChartData = [
+    {
+      "id": "Travelers",
+      "label": "Travelers",
+      "value": 4500,
+      "color": "hsl(102, 70%, 50%)"
+    },
+    {
+      "id": "Non-Travelers",
+      "label": "Non-Travelers",
+      "value": 3000,
+      "color": "hsl(206, 70%, 50%)"
+    },
+    {
+      "id": "Unknown",
+      "label": "Unknown",
+      "value": 1500,
+      "color": "hsl(191, 70%, 50%)"
+    }
+  ];
 
   return (
     <Box m="20px">
@@ -55,12 +88,32 @@ const Dashboard = () => {
           justifyContent="center"
         >
           <StatBox
-            title="12,361"
-            subtitle="Emails Sent"
-            progress="0.75"
-            increase="+14%"
+            title={totalUsers}
+            subtitle="MNL"
+            progress={totalUsers / 100000} // Example progress calculation
+            increase="+0%"
             icon={
-              <EmailIcon
+              <AirplanemodeActiveIcon
+                sx={{ color: colors.greenAccent[600], fontSize: "26px" }}
+              />
+            }
+          />
+        </Box>
+
+        <Box
+          gridColumn="span 3"
+          backgroundColor={colors.primary[400]}
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+        >
+          <StatBox
+            title="0"
+            subtitle="CEB"
+            progress=""
+            increase="+0%"
+            icon={
+              <AirplanemodeActiveIcon
                 sx={{ color: colors.greenAccent[600], fontSize: "26px" }}
               />
             }
@@ -74,12 +127,12 @@ const Dashboard = () => {
           justifyContent="center"
         >
           <StatBox
-            title="431,225"
-            subtitle="Sales Obtained"
-            progress="0.50"
-            increase="+21%"
+            title="0"
+            subtitle="CRK"
+            progress=""
+            increase="+0%"
             icon={
-              <PointOfSaleIcon
+              <AirplanemodeActiveIcon
                 sx={{ color: colors.greenAccent[600], fontSize: "26px" }}
               />
             }
@@ -93,31 +146,12 @@ const Dashboard = () => {
           justifyContent="center"
         >
           <StatBox
-            title="32,441"
-            subtitle="New Clients"
-            progress="0.30"
-            increase="+5%"
+            title="0"
+            subtitle="DVO"
+            progress=""
+            increase="+0%"
             icon={
-              <PersonAddIcon
-                sx={{ color: colors.greenAccent[600], fontSize: "26px" }}
-              />
-            }
-          />
-        </Box>
-        <Box
-          gridColumn="span 3"
-          backgroundColor={colors.primary[400]}
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-        >
-          <StatBox
-            title="1,325,134"
-            subtitle="Traffic Received"
-            progress="0.80"
-            increase="+43%"
-            icon={
-              <TrafficIcon
+              <AirplanemodeActiveIcon
                 sx={{ color: colors.greenAccent[600], fontSize: "26px" }}
               />
             }
@@ -143,14 +177,14 @@ const Dashboard = () => {
                 fontWeight="600"
                 color={colors.grey[100]}
               >
-                Revenue Generated
+                Total Travelers
               </Typography>
               <Typography
                 variant="h3"
                 fontWeight="bold"
                 color={colors.greenAccent[500]}
               >
-                $59,342.32
+                {totalUsers}
               </Typography>
             </Box>
             <Box>
@@ -172,52 +206,26 @@ const Dashboard = () => {
           overflow="auto"
         >
           <Box
-            display="flex"
-            justifyContent="space-between"
-            alignItems="center"
-            borderBottom={`4px solid ${colors.primary[500]}`}
-            colors={colors.grey[100]}
-            p="15px"
+            gridColumn="span 4"
+            gridRow="span 2"
+            backgroundColor={colors.primary[400]}
+            padding="30px"
           >
-            <Typography color={colors.grey[100]} variant="h5" fontWeight="600">
-              Recent Transactions
-            </Typography>
-          </Box>
-          {mockTransactions.map((transaction, i) => (
-            <Box
-              key={`${transaction.txId}-${i}`}
-              display="flex"
-              justifyContent="space-between"
-              alignItems="center"
-              borderBottom={`4px solid ${colors.primary[500]}`}
-              p="15px"
+            <Typography
+              variant="h5"
+              fontWeight="600"
+              sx={{ marginBottom: "15px" }}
             >
-              <Box>
-                <Typography
-                  color={colors.greenAccent[500]}
-                  variant="h5"
-                  fontWeight="600"
-                >
-                  {transaction.txId}
-                </Typography>
-                <Typography color={colors.grey[100]}>
-                  {transaction.user}
-                </Typography>
-              </Box>
-              <Box color={colors.grey[100]}>{transaction.date}</Box>
-              <Box
-                backgroundColor={colors.greenAccent[500]}
-                p="5px 10px"
-                borderRadius="4px"
-              >
-                ${transaction.cost}
-              </Box>
+              Nationalities
+            </Typography>
+            <Box height="200px">
+              <PieChart data={pieChartData} />
             </Box>
-          ))}
+          </Box>
         </Box>
 
         {/* ROW 3 */}
-        <Box
+        {/* <Box
           gridColumn="span 4"
           gridRow="span 2"
           backgroundColor={colors.primary[400]}
@@ -275,7 +283,8 @@ const Dashboard = () => {
           <Box height="200px">
             <GeographyChart isDashboard={true} />
           </Box>
-        </Box>
+        </Box> */}
+      
       </Box>
     </Box>
   );
