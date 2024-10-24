@@ -1,35 +1,46 @@
-// src/scenes/Login.js
 import { useState } from 'react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../../Firebase';
 import { useNavigate } from 'react-router-dom';
-import { Container, Box, Typography, TextField, Button, Alert, Avatar } from '@mui/material';
+import { Container, Box, Typography, TextField, Button, Alert, Avatar, CircularProgress } from '@mui/material';
 import Logo from '../../assets/ciis.png'; // Import the logo
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false); // Add loading state
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setLoading(true); // Start loading when login is initiated
+    setError(''); // Clear any previous error
     try {
       await signInWithEmailAndPassword(auth, email, password);
       navigate('/'); // Redirect to dashboard on successful login
     } catch (error) {
       setError('Failed to login. Please check your email and password.');
+    } finally {
+      setLoading(false); // Stop loading after login attempt is completed
     }
   };
 
   return (
-    <Container component="main" maxWidth="xs" sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', backgroundColor: 'background.default' }}>
+    <Container
+      component="main"
+      maxWidth="xs"
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '100vh',
+        backgroundColor: 'background.default',
+      }}
+    >
       <Box sx={{ p: 4, borderRadius: 2, boxShadow: 3, backgroundColor: 'background.paper', textAlign: 'center' }}>
-        <Avatar 
-          src={Logo} 
-          alt="Logo" 
-          sx={{ width: 80, height: 80, mx: 'auto', mb: 2 }} 
-        />
+        <Avatar src={Logo} alt="Logo" sx={{ width: 80, height: 80, mx: 'auto', mb: 2 }} />
         <Typography variant="h2" sx={{ mb: 2 }}>
           Login
         </Typography>
@@ -60,8 +71,9 @@ const Login = () => {
             color="primary"
             fullWidth
             sx={{ mt: 2 }}
+            disabled={loading} // Disable the button while loading
           >
-            Login
+            {loading ? <CircularProgress size={24} /> : 'Login'} {/* Show spinner if loading */}
           </Button>
         </form>
         {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}

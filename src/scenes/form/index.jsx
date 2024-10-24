@@ -7,6 +7,7 @@ import Header from "../../components/Header";
 import { auth, db } from "../../Firebase";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendPasswordResetEmail } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
+import { query, collection, where, getDocs } from "firebase/firestore";
 
 const generateRandomPassword = (length = 12) => {
   const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()";
@@ -32,53 +33,80 @@ const Form = () => {
     setOpenDialog(true);
   };
 
-  const handleDialogClose = async (confirm) => {
-    setOpenDialog(false);
-    if (confirm && formValues) {
-      try {
-        setLoading(true); // Set loading state before processing
+// Function to generate a unique ID
+const generateUniqueUserID = async (accessLevel) => {
+  let uniqueIDFound = false;
+  let id = "";
 
-        // Generate a random password
-        const randomPassword = generateRandomPassword();
+  // Loop until a unique ID is found
+  while (!uniqueIDFound) {
+    // Generate a random ID
+    id = `BOC-${accessLevel.toUpperCase()}-${Math.floor(Math.random() * 1000) + 1}`;
 
-        // Create user with Firebase Authentication
-        await createUserWithEmailAndPassword(auth, formValues.email, randomPassword); // Use the random password
+    // Check Firestore if the generated ID already exists
+    const q = query(collection(db, "Users"), where("id", "==", id));
+    const querySnapshot = await getDocs(q);
 
-        // Save user information to Firestore
-        const user = auth.currentUser; // Get the current user
-        if (user) {
-          await setDoc(doc(db, "Users", user.uid), {
-            fname: formValues.firstName,
-            lname: formValues.lastName,
-            email: formValues.email,
-            contact: formValues.contact,
-            accessLevel: formValues.accessLevel,
-            password: randomPassword // Store the password securely (if needed)
-          });
-
-          // Login the new user
-          await signInWithEmailAndPassword(auth, formValues.email, randomPassword);
-
-          // Send password to user's email
-          await sendPasswordResetEmail(auth, formValues.email);
-
-          // Show success message
-          setSnackbarMessage("User created successfully! Please check your email for the password.");
-          setOpenSnackbar(true);
-        }
-
-        // Immediately log out the user
-        await signOut(auth);
-      } catch (error) {
-        console.error("Error creating user:", error);
-        setSnackbarMessage(`Error: ${error.message}`);
-        setOpenSnackbar(true);
-      } finally {
-        setLoading(false); // Reset loading state
-        setFormValues(null); // Clear the form values
-      }
+    // If no matching documents, it's a unique ID
+    if (querySnapshot.empty) {
+      uniqueIDFound = true;
     }
-  };
+  }
+
+  return id;
+};
+
+const handleDialogClose = async (confirm) => {
+  setOpenDialog(false);
+  if (confirm && formValues) {
+    try {
+      setLoading(true); // Set loading state before processing
+
+      // Generate a random password
+      const randomPassword = generateRandomPassword();
+
+      // Generate a unique custom user ID based on access level
+      const id = await generateUniqueUserID(formValues.accessLevel);
+
+      // Create user with Firebase Authentication
+      await createUserWithEmailAndPassword(auth, formValues.email, randomPassword);
+
+      // Save user information to Firestore
+      const user = auth.currentUser;
+      if (user) {
+        await setDoc(doc(db, "Users", user.uid), {
+          fname: formValues.firstName,
+          lname: formValues.lastName,
+          email: formValues.email,
+          contact: formValues.contact,
+          accessLevel: formValues.accessLevel,
+          id: id,  // Save the generated custom ID
+          password: randomPassword // Store the password securely (if needed)
+        });
+
+        // Login the new user
+        await signInWithEmailAndPassword(auth, formValues.email, randomPassword);
+
+        // Send password to user's email
+        await sendPasswordResetEmail(auth, formValues.email);
+
+        // Show success message
+        setSnackbarMessage(`User created successfully! ID: ${id}. Please check your email for the password.`);
+        setOpenSnackbar(true);
+      }
+
+      // Immediately log out the user
+      await signOut(auth);
+    } catch (error) {
+      console.error("Error creating user:", error);
+      setSnackbarMessage(`Error: ${error.message}`);
+      setOpenSnackbar(true);
+    } finally {
+      setLoading(false); // Reset loading state
+      setFormValues(null); // Clear the form values
+    }
+  }
+};
 
   const handleCloseSnackbar = () => {
     setOpenSnackbar(false);
@@ -177,7 +205,8 @@ const Form = () => {
                   disabled={loading} // Disable select when loading
                 >
                   <MenuItem value="manager">Manager</MenuItem>
-                  <MenuItem value="user">User</MenuItem>
+                  <MenuItem value="airliner">Airliner</MenuItem>
+                  <MenuItem value="examiner">Examiner</MenuItem>
                 </Select>
               </FormControl>
             </Box>
@@ -232,7 +261,7 @@ const checkoutSchema = yup.object().shape({
     .string()
     .matches(phoneRegExp, "Phone number is not valid")
     .required("required"),
-  accessLevel: yup.string().oneOf(["manager", "user"], "Invalid access level").required("required"),
+  accessLevel: yup.string().oneOf(["manager", "airliner", "examiner"], "Invalid access level").required("required"),
 });
 
 const initialValues = {

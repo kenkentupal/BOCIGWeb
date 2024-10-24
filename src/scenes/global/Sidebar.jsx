@@ -61,10 +61,11 @@ const Sidebar = () => {
           // Fetching first and last name from user document
           const firstName = userData.fname || "";
           const lastName = userData.lname || "";
+          const id = userData.id || "";
           // Fetching access level from user document
           const accessLevel = userData.accessLevel || ""; // Adjust according to your data structure
           // Setting userName as "FirstName LastName"
-          setUserName(`${firstName} ${lastName}`);
+          setUserName(` ${id}`);
           setUserAccessLevel(accessLevel); // Update access level state
           setError(""); // Clear any previous error
         } else {
@@ -170,59 +171,83 @@ const Sidebar = () => {
             </Box>
           )}
 
-          <Box paddingLeft={isCollapsed ? undefined : "10%"}>
-            <Item
-              title="Dashboard"
-              to="/"
-              icon={<HomeOutlinedIcon />}
-              selected={selected}
-              setSelected={setSelected}
-            />
+<Box paddingLeft={isCollapsed ? undefined : "10%"}>
+  <Item
+    title="Dashboard"
+    to="/"
+    icon={<HomeOutlinedIcon />}
+    selected={selected}
+    setSelected={setSelected}
+  />
 
-            <Typography
-              variant="h6"
-              color={colors.grey[300]}
-              sx={{ m: "15px 0 5px 20px" }}
-            >
-              Data
+  <Typography
+    variant="h6"
+    color={colors.grey[300]}
+    sx={{ m: "15px 0 5px 20px" }}
+  >
+    Data
+  </Typography>
 
-            </Typography>
+  {userAccessLevel !== "examiner" && (
+  <Item
+    title="Airliner"
+    to="/search"
+    icon={<ContactsOutlinedIcon />}
+    selected={selected}
+    setSelected={setSelected}
+  />
+  )}
 
-            <Item
-              title="Travelers Information"
-              to="/contacts"
-              icon={<ContactsOutlinedIcon />}
-              selected={selected}
-              setSelected={setSelected}
-            />
-           
-            <Typography
-              variant="h6"
-              color={colors.grey[300]}
-              sx={{ m: "15px 0 5px 20px" }}
-            >
-              Team
+  {userAccessLevel !== "airliner" && (
+    <Item
+      title="Examiner"
+      to="/examiner"
+      icon={<ContactsOutlinedIcon />}
+      selected={selected}
+      setSelected={setSelected}
+    />
+  )}
 
-            </Typography>
-            {userAccessLevel !== "user" && (
-              <Item
-                title="Manage Team"
-                to="/team"
-                icon={<PeopleOutlinedIcon />}
-                selected={selected}
-                setSelected={setSelected}
-              />
-            )}
-            {userAccessLevel !== "user" && (
-              <Item
-                title="Profile Form"
-                to="/form"
-                icon={<PersonOutlinedIcon />}
-                selected={selected}
-                setSelected={setSelected}
-              />
-            )}
+{userAccessLevel !== "airliner" && userAccessLevel !== "examiner"  && (
+  <Item
+    title="History"
+    to="/contacts"
+    icon={<ContactsOutlinedIcon />}
+    selected={selected}
+    setSelected={setSelected}
+  />
 
+)}
+{userAccessLevel !== "airliner" && userAccessLevel !== "examiner" && (
+  <Typography
+    variant="h6"
+    color={colors.grey[300]}
+    sx={{ m: "15px 0 5px 20px" }}
+  >
+    Team
+  </Typography>
+ )}
+
+{userAccessLevel !== "airliner" && userAccessLevel !== "examiner" && (
+
+    <Item
+      title="Manage Team"
+      to="/team"
+      icon={<PeopleOutlinedIcon />}
+      selected={selected}
+      setSelected={setSelected}
+    />
+  )}
+  
+  {userAccessLevel !== "airliner" && userAccessLevel !== "examiner" && (
+    <Item
+      title="Profile Form"
+      to="/form"
+      icon={<PersonOutlinedIcon />}
+      selected={selected}
+      setSelected={setSelected}
+    />
+  )}
 
            
            
@@ -250,12 +275,13 @@ const Sidebar = () => {
               selected={selected}
               setSelected={setSelected}
             />
-
+ {/*
             <Typography
               variant="h6"
               color={colors.grey[300]}
               sx={{ m: "15px 0 5px 20px" }}
             >
+             
               Charts
             </Typography>
             <Item
@@ -286,6 +312,7 @@ const Sidebar = () => {
               selected={selected}
               setSelected={setSelected}
             />
+            */}
           </Box>
         </Menu>
       </ProSidebar>

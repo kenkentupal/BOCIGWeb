@@ -13,8 +13,8 @@ const LineChart = ({ isCustomLineColors = false, isDashboard = false }) => {
 
   const [data, setData] = useState([
     {
-      id: "DVO",
-      color: "hsl(342, 70%, 50%)",
+      id: "Total",
+      color: "hsl(200, 70%, 50%)",
       data: [
         { x: "Jan", y: 0 },
         { x: "Feb", y: 0 },
@@ -29,54 +29,13 @@ const LineChart = ({ isCustomLineColors = false, isDashboard = false }) => {
         { x: "Nov", y: 0 },
         { x: "Dec", y: 0 },
       ],
-    },
-    {
-      id: "CLK",
-      color: "hsl(210, 70%, 50%)",
-      data: [
-        { x: "Jan", y: 0 },
-        { x: "Feb", y: 0 },
-        { x: "Mar", y: 0 },
-        { x: "Apr", y: 0 },
-        { x: "May", y: 0 },
-        { x: "Jun", y: 0 },
-        { x: "Jul", y: 0 },
-        { x: "Aug", y: 0 },
-        { x: "Sep", y: 0 },
-        { x: "Oct", y: 0 },
-        { x: "Nov", y: 0 },
-        { x: "Dec", y: 0 },
-      ],
-    },
-    {
-      id: "CEB",
-      color: "hsl(49, 70%, 50%)",
-      data: [
-        { x: "Jan", y: 0 },
-        { x: "Feb", y: 0 },
-        { x: "Mar", y: 0 },
-        { x: "Apr", y: 0 },
-        { x: "May", y: 0 },
-        { x: "Jun", y: 0 },
-        { x: "Jul", y: 0 },
-        { x: "Aug", y: 0 },
-        { x: "Sep", y: 0 },
-        { x: "Oct", y: 0 },
-        { x: "Nov", y: 0 },
-        { x: "Dec", y: 0 },
-      ],
-    },
-    {
-      id: "MNL",
-      color: "hsl(121, 70%, 50%)",
-      data: [], // To be updated with Firestore data
     },
   ]);
 
   useEffect(() => {
     const fetchData = async () => {
-      const resultTableRef = collection(db, "ResultTable");
-      const querySnapshot = await getDocs(resultTableRef);
+      const baggageInfoRef = collection(db, "BaggageInfo");
+      const querySnapshot = await getDocs(baggageInfoRef);
 
       // Initialize month counts
       const monthCounts = {
@@ -86,8 +45,9 @@ const LineChart = ({ isCustomLineColors = false, isDashboard = false }) => {
       // Process each document
       querySnapshot.forEach((doc) => {
         const data = doc.data();
-        const date = data.Date; // assuming the date field is named "Date"
-        if (date) {
+        const date = data.dateOfArrival; // assuming the date field is named "Date"
+        const arrivalAirport = data.airportArrival; // assuming the arrival airport field is named "ArrivalAirport"
+        if (date && arrivalAirport) {
           const month = new Date(date).toLocaleString("default", { month: "short" });
           if (monthCounts.hasOwnProperty(month)) {
             monthCounts[month]++;
@@ -96,7 +56,7 @@ const LineChart = ({ isCustomLineColors = false, isDashboard = false }) => {
       });
 
       // Convert monthCounts to array format
-      const mnlData = Object.keys(monthCounts).map((month) => ({
+      const totalData = Object.keys(monthCounts).map((month) => ({
         x: month,
         y: monthCounts[month],
       }));
@@ -104,7 +64,7 @@ const LineChart = ({ isCustomLineColors = false, isDashboard = false }) => {
       // Update the chart data
       setData((prevData) => {
         const updatedData = prevData.map((serie) =>
-          serie.id === "MNL" ? { ...serie, data: mnlData } : serie
+          serie.id === "Total" ? { ...serie, data: totalData } : serie
         );
         return updatedData;
       });

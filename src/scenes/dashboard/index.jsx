@@ -1,29 +1,44 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Button, IconButton, Typography, useTheme } from "@mui/material";
 import { tokens } from "../../theme";
-import { mockTransactions } from "../../data/mockData";
+import { getFirestore, collection, getDocs, query, where } from "firebase/firestore";
 import DownloadOutlinedIcon from "@mui/icons-material/DownloadOutlined";
 import AirplanemodeActiveIcon from "@mui/icons-material/AirplanemodeActive";
 import Header from "../../components/Header";
-import LineChart from "../../components/LineChart";
-import GeographyChart from "../../components/GeographyChart";
-import BarChart from "../../components/BarChart";
 import StatBox from "../../components/StatBox";
-import ProgressCircle from "../../components/ProgressCircle";
+import LineChart from "../../components/LineChart";
 import PieChart from "../../components/PieChart";
-import { getFirestore, collection, getDocs } from "firebase/firestore";
 
 const Dashboard = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const [totalUsers, setTotalUsers] = useState(0);
+  const [totalBaggage, setTotalBaggage] = useState(0);
+
+
+  const [totalNAIABaggage, setTotalNAIABaggage] = useState(0);
+  
 
   useEffect(() => {
     const fetchTotalUsers = async () => {
       const db = getFirestore();
-      const usersCollection = collection(db, 'ResultTable');
-      const usersSnapshot = await getDocs(usersCollection);
+      const passengerCollection = collection(db, 'ResultTable');
+      const baggageCollection = collection(db, 'BaggageInfo');
+      const baggageSnapshot = await getDocs(baggageCollection);
+      setTotalBaggage(baggageSnapshot.size);
+      
+      // Fetch all passengers
+      const usersSnapshot = await getDocs(passengerCollection);
       setTotalUsers(usersSnapshot.size);
+
+      // Fetch baggage data specifically for NAIA arrivals
+      const naiaQuery = query(baggageCollection, where('airportArrival', '==', 'NAIA'));
+      const NAIAbaggageSnapshot = await getDocs(naiaQuery);
+      setTotalNAIABaggage(NAIAbaggageSnapshot.size);
+
+
+
+
     };
 
     fetchTotalUsers();
@@ -55,7 +70,6 @@ const Dashboard = () => {
       {/* HEADER */}
       <Box display="flex" justifyContent="space-between" alignItems="center">
         <Header title="DASHBOARD" subtitle="Welcome to your dashboard" />
-
         <Box>
           <Button
             sx={{
@@ -88,9 +102,9 @@ const Dashboard = () => {
           justifyContent="center"
         >
           <StatBox
-            title={totalUsers}
-            subtitle="MNL"
-            progress={totalUsers / 100000} // Example progress calculation
+            title={totalNAIABaggage}
+            subtitle="NAIA Baggage Arrivals"
+            progress={totalNAIABaggage / 10000} // Example progress calculation
             increase="+0%"
             icon={
               <AirplanemodeActiveIcon
@@ -100,6 +114,7 @@ const Dashboard = () => {
           />
         </Box>
 
+        {/* Other StatBoxes */}
         <Box
           gridColumn="span 3"
           backgroundColor={colors.primary[400]}
@@ -119,6 +134,7 @@ const Dashboard = () => {
             }
           />
         </Box>
+
         <Box
           gridColumn="span 3"
           backgroundColor={colors.primary[400]}
@@ -138,6 +154,7 @@ const Dashboard = () => {
             }
           />
         </Box>
+
         <Box
           gridColumn="span 3"
           backgroundColor={colors.primary[400]}
@@ -177,7 +194,7 @@ const Dashboard = () => {
                 fontWeight="600"
                 color={colors.grey[100]}
               >
-                Total Travelers
+                Total Baggage Declarations
               </Typography>
               <Typography
                 variant="h3"
@@ -199,6 +216,7 @@ const Dashboard = () => {
             <LineChart isDashboard={true} />
           </Box>
         </Box>
+
         <Box
           gridColumn="span 4"
           gridRow="span 2"
@@ -223,68 +241,6 @@ const Dashboard = () => {
             </Box>
           </Box>
         </Box>
-
-        {/* ROW 3 */}
-        {/* <Box
-          gridColumn="span 4"
-          gridRow="span 2"
-          backgroundColor={colors.primary[400]}
-          p="30px"
-        >
-          <Typography variant="h5" fontWeight="600">
-            Campaign
-          </Typography>
-          <Box
-            display="flex"
-            flexDirection="column"
-            alignItems="center"
-            mt="25px"
-          >
-            <ProgressCircle size="125" />
-            <Typography
-              variant="h5"
-              color={colors.greenAccent[500]}
-              sx={{ mt: "15px" }}
-            >
-              $48,352 revenue generated
-            </Typography>
-            <Typography>Includes extra misc expenditures and costs</Typography>
-          </Box>
-        </Box>
-        <Box
-          gridColumn="span 4"
-          gridRow="span 2"
-          backgroundColor={colors.primary[400]}
-        >
-          <Typography
-            variant="h5"
-            fontWeight="600"
-            sx={{ padding: "30px 30px 0 30px" }}
-          >
-            Sales Quantity
-          </Typography>
-          <Box height="250px" mt="-20px">
-            <BarChart isDashboard={true} />
-          </Box>
-        </Box>
-        <Box
-          gridColumn="span 4"
-          gridRow="span 2"
-          backgroundColor={colors.primary[400]}
-          padding="30px"
-        >
-          <Typography
-            variant="h5"
-            fontWeight="600"
-            sx={{ marginBottom: "15px" }}
-          >
-            Geography Based Traffic
-          </Typography>
-          <Box height="200px">
-            <GeographyChart isDashboard={true} />
-          </Box>
-        </Box> */}
-      
       </Box>
     </Box>
   );

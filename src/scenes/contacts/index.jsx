@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Box, Modal, IconButton, Typography, Button } from "@mui/material";
+import { Box, Modal, IconButton, Typography, Button, MenuItem, Select, InputLabel, FormControl } from "@mui/material";
 import { useTheme } from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { collection, getDocs } from "firebase/firestore";
@@ -10,10 +10,25 @@ import { tokens } from "../../theme";
 import ImageIcon from '@mui/icons-material/Image'; // You can use any icon for the image
 import CloseIcon from '@mui/icons-material/Close'; // Import the Close icon
 
+// Airport data
+const airports = [
+  { code: 'MNL', name: 'Ninoy Aquino International Airport (MNL)' },
+  { code: 'CEB', name: 'Mactan-Cebu International Airport (CEB)' },
+  { code: 'DVO', name: 'Francisco Bangoy International Airport (DVO)' },
+  { code: 'PQM', name: 'Panglao International Airport (PQM)' },
+  { code: 'ILO', name: 'Iloilo International Airport (ILO)' },
+  { code: 'ZAM', name: 'Zamboanga International Airport (ZAM)' },
+  { code: 'TAC', name: 'Daniel Z. Romualdez Airport (TAC)' },
+  { code: 'KLO', name: 'Kalibo International Airport (KLO)' },
+  { code: 'BCA', name: 'Bacolet Airport (BCA)' },
+  { code: 'BPI', name: 'Bohol–Panglao International Airport (BPI)' },
+];
+
 const Contacts = () => {
   const [data, setData] = useState([]);
   const [open, setOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState("");
+  const [selectedAirport, setSelectedAirport] = useState(""); // State for selected airport
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const storage = getStorage();
@@ -27,10 +42,7 @@ const Contacts = () => {
     { field: "Gender", headerName: "Gender", flex: 1 },
     { field: "Document Number", headerName: "Passport ID", flex: 1 },
     { field: "Date of Birth", headerName: "Date of Birth", flex: 1 },
-    { field: "Date", headerName: "Date", flex: 1 },
-    { field: "Valid Until", headerName: "Valid Until", flex: 1 },
-    { field: "MRZ1", headerName: "MRZ1", flex: 1 },
-    { field: "MRZ2", headerName: "MRZ2", flex: 1 },
+
     {
       field: "image",
       headerName: "Image",
@@ -72,12 +84,34 @@ const Contacts = () => {
     fetchData();
   }, []);
 
+  const handleAirportChange = (event) => {
+    setSelectedAirport(event.target.value);
+  };
+
   return (
     <Box m="20px">
       <Header
         title="Travelers Information"
         subtitle="List of Travelers Information"
       />
+
+      {/* Dropdown for airports */}
+      <FormControl fullWidth variant="outlined" margin="normal">
+        <InputLabel id="airport-select-label">Select Airport</InputLabel>
+        <Select
+          labelId="airport-select-label"
+          value={selectedAirport}
+          onChange={handleAirportChange}
+          label="Select Airport"
+        >
+          {airports.map((airport) => (
+            <MenuItem key={airport.code} value={airport.code}>
+              {airport.name}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+
       <Box
         m="40px 0 0 0"
         height="75vh"

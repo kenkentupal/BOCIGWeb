@@ -4,9 +4,11 @@ import { Box, Typography, Button, useTheme, Dialog, DialogActions, DialogContent
 import { DataGrid } from "@mui/x-data-grid";
 import { tokens } from "../../theme";
 import AdminPanelSettingsOutlinedIcon from "@mui/icons-material/AdminPanelSettingsOutlined";
-import LockOpenOutlinedIcon from "@mui/icons-material/LockOpenOutlined";
 import SecurityOutlinedIcon from "@mui/icons-material/SecurityOutlined";
+
 import MoreVertIcon from "@mui/icons-material/MoreVert";
+import FlightTakeoffOutlinedIcon from "@mui/icons-material/FlightTakeoffOutlined";
+
 import Header from "../../components/Header";
 import { db, collection, getDocs } from "../../Firebase"; 
 import { getAuth, sendPasswordResetEmail } from "firebase/auth";
@@ -29,7 +31,7 @@ const Team = () => {
 
   // Define columns for DataGrid
   const columns = [
-    { field: "id", headerName: "ID" },
+    { field: "id", headerName: "ID", flex: 1,},
     {
       field: "fname",
       headerName: "First Name",
@@ -73,11 +75,13 @@ const Team = () => {
           borderRadius="4px"
         >
           {accessLevel === "admin" && <AdminPanelSettingsOutlinedIcon />}
-          {accessLevel === "manager" && <SecurityOutlinedIcon />}
-          {accessLevel === "user" && <LockOpenOutlinedIcon />}
+          {accessLevel === "manager" && <AdminPanelSettingsOutlinedIcon />}
+          {accessLevel === "examiner" && <SecurityOutlinedIcon />}
+          {accessLevel === "airliner" && <FlightTakeoffOutlinedIcon />}
           <Typography color={colors.grey[100]} sx={{ ml: "5px" }}>
             {accessLevel}
           </Typography>
+
         </Box>
       ),
     },
