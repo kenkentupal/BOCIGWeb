@@ -17,14 +17,15 @@ const PieChart = () => {
       const nationalityCount = {};
 
       querySnapshot.forEach((doc) => {
-        const nationality = doc.get("Nationality");
+        const nationality = doc.get("nationality");
         if (nationality) {
-          nationalityCount[nationality] = (nationalityCount[nationality] || 0) + 1;
+          nationalityCount[nationality] =
+            (nationalityCount[nationality] || 0) + 1;
         }
       });
 
       // Convert to the format needed by ResponsivePie
-      const formattedData = Object.keys(nationalityCount).map(key => ({
+      const formattedData = Object.keys(nationalityCount).map((key) => ({
         id: key,
         label: `${key} (${nationalityCount[key]})`, // Show nationality and count
         value: nationalityCount[key],

@@ -1,6 +1,12 @@
 import { useState, useEffect } from "react";
 import { ProSidebar, Menu, MenuItem } from "react-pro-sidebar";
-import { Box, IconButton, Typography, useTheme } from "@mui/material";
+import {
+  Box,
+  IconButton,
+  Typography,
+  CircularProgress,
+  useTheme,
+} from "@mui/material";
 import { Link } from "react-router-dom";
 import "react-pro-sidebar/dist/css/styles.css";
 import { tokens } from "../../theme";
@@ -19,6 +25,10 @@ import PieChartOutlineOutlinedIcon from "@mui/icons-material/PieChartOutlineOutl
 import TimelineOutlinedIcon from "@mui/icons-material/TimelineOutlined";
 import MenuOutlinedIcon from "@mui/icons-material/MenuOutlined";
 import MapOutlinedIcon from "@mui/icons-material/MapOutlined";
+import LocalAirportOutlinedIcon from "@mui/icons-material/LocalAirportOutlined";
+import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
+import AssessmentOutlinedIcon from "@mui/icons-material/AssessmentOutlined";
+import ShowChartIcon from "@mui/icons-material/ShowChart";
 
 const Item = ({ title, to, icon, selected, setSelected }) => {
   const theme = useTheme();
@@ -46,28 +56,23 @@ const Sidebar = () => {
   const [userName, setUserName] = useState("");
   const [userEmail, setUserEmail] = useState("");
   const [userUID, setUserUID] = useState("");
-  const [userAccessLevel, setUserAccessLevel] = useState(""); // New state for access level
-  const [error, setError] = useState(""); // New state for errors
+  const [userAccessLevel, setUserAccessLevel] = useState("");
+  const [error, setError] = useState("");
+  const [sessionLoading, setSessionLoading] = useState(true); // Track session loading status
 
   useEffect(() => {
     const fetchUserData = async (uid) => {
       try {
-        // Reference to the user document in Firestore
         const userDocRef = doc(db, "Users", uid);
         const userDoc = await getDoc(userDocRef);
-        
+
         if (userDoc.exists()) {
           const userData = userDoc.data();
-          // Fetching first and last name from user document
-          const firstName = userData.fname || "";
-          const lastName = userData.lname || "";
           const id = userData.id || "";
-          // Fetching access level from user document
-          const accessLevel = userData.accessLevel || ""; // Adjust according to your data structure
-          // Setting userName as "FirstName LastName"
+          const accessLevel = userData.accessLevel || "";
           setUserName(` ${id}`);
-          setUserAccessLevel(accessLevel); // Update access level state
-          setError(""); // Clear any previous error
+          setUserAccessLevel(accessLevel);
+          setError("");
         } else {
           setUserName("User not found");
           setError("No such user document!");
@@ -75,6 +80,8 @@ const Sidebar = () => {
       } catch (error) {
         setUserName("Error loading user data");
         setError(`Error fetching user data: ${error.message}`);
+      } finally {
+        setSessionLoading(false); // Stop loading when user data is fetched
       }
     };
 
@@ -84,10 +91,7 @@ const Sidebar = () => {
         setUserUID(user.uid);
         fetchUserData(user.uid);
       } else {
-        setUserName("");
-        setUserEmail("");
-        setUserUID("");
-        setError(""); // Clear error if no user
+        setSessionLoading(false); // Stop loading if no user is logged in
       }
     });
 
@@ -155,165 +159,187 @@ const Sidebar = () => {
               </Box>
               <Box textAlign="center">
                 <Typography
-                  variant="h2"
+                  variant="h3"
                   color={colors.grey[100]}
                   fontWeight="bold"
                   sx={{ m: "10px 0 0 0" }}
                 >
                   {userName}
                 </Typography>
-                
-                <Typography variant="h5" color={colors.greenAccent[500]}>
-            
-                </Typography>
-               
               </Box>
             </Box>
           )}
 
-<Box paddingLeft={isCollapsed ? undefined : "10%"}>
-  <Item
-    title="Dashboard"
-    to="/"
-    icon={<HomeOutlinedIcon />}
-    selected={selected}
-    setSelected={setSelected}
-  />
+          {/* Display loading spinner in sidebar until session is ready */}
+          {sessionLoading ? (
+            <Box display="flex" justifyContent="center" mt={4}>
+              <CircularProgress color="inherit" />
+            </Box>
+          ) : (
+            <Box paddingLeft={isCollapsed ? undefined : "10%"}>
+              <Item
+                title="Dashboard"
+                to="/"
+                icon={<HomeOutlinedIcon />}
+                selected={selected}
+                setSelected={setSelected}
+              />
+              <Item
+                title="Analysis"
+                to="/analysis"
+                icon={<ShowChartIcon />}
+                selected={selected}
+                setSelected={setSelected}
+              />
 
-  <Typography
-    variant="h6"
-    color={colors.grey[300]}
-    sx={{ m: "15px 0 5px 20px" }}
-  >
-    Data
-  </Typography>
+              <Typography
+                variant="h6"
+                color={colors.grey[300]}
+                sx={{ m: "15px 0 5px 20px" }}
+              >
+                Data
+              </Typography>
 
-  {userAccessLevel !== "examiner" && (
-  <Item
-    title="Airliner"
-    to="/search"
-    icon={<ContactsOutlinedIcon />}
-    selected={selected}
-    setSelected={setSelected}
-  />
-  )}
+              {userAccessLevel !== "examiner" && (
+                <Item
+                  title="Airliner"
+                  to="/search"
+                  icon={<LocalAirportOutlinedIcon />}
+                  selected={selected}
+                  setSelected={setSelected}
+                />
+              )}
 
-  {userAccessLevel !== "airliner" && (
-    <Item
-      title="Examiner"
-      to="/examiner"
-      icon={<ContactsOutlinedIcon />}
-      selected={selected}
-      setSelected={setSelected}
-    />
-  )}
+              {userAccessLevel !== "airliner" && (
+                <Item
+                  title="Examiner"
+                  to="/examiner"
+                  icon={
+                    <Box display="flex" alignItems="center">
+                      <PersonOutlinedIcon />
+                      <LockOutlinedIcon
+                        style={{ marginLeft: -8, fontSize: 16 }}
+                      />
+                    </Box>
+                  }
+                  selected={selected}
+                  setSelected={setSelected}
+                />
+              )}
+              {userAccessLevel !== "airliner" &&
+                userAccessLevel !== "examiner" && (
+                  <Item
+                    title="History"
+                    to="/contacts"
+                    icon={<ContactsOutlinedIcon />}
+                    selected={selected}
+                    setSelected={setSelected}
+                  />
+                )}
+              {userAccessLevel !== "airliner" &&
+                userAccessLevel !== "examiner" && (
+                  <Typography
+                    variant="h6"
+                    color={colors.grey[300]}
+                    sx={{ m: "15px 0 5px 20px" }}
+                  >
+                    Admin
+                  </Typography>
+                )}
 
-{userAccessLevel !== "airliner" && userAccessLevel !== "examiner"  && (
-  <Item
-    title="History"
-    to="/contacts"
-    icon={<ContactsOutlinedIcon />}
-    selected={selected}
-    setSelected={setSelected}
-  />
+              {userAccessLevel !== "airliner" &&
+                userAccessLevel !== "examiner" && (
+                  <Item
+                    title="Manage Team"
+                    to="/team"
+                    icon={<PeopleOutlinedIcon />}
+                    selected={selected}
+                    setSelected={setSelected}
+                  />
+                )}
 
-)}
-{userAccessLevel !== "airliner" && userAccessLevel !== "examiner" && (
-  <Typography
-    variant="h6"
-    color={colors.grey[300]}
-    sx={{ m: "15px 0 5px 20px" }}
-  >
-    Team
-  </Typography>
- )}
+              {userAccessLevel !== "airliner" &&
+                userAccessLevel !== "examiner" && (
+                  <Item
+                    title="Passenger"
+                    to="/passenger"
+                    icon={<PeopleOutlinedIcon />}
+                    selected={selected}
+                    setSelected={setSelected}
+                  />
+                )}
 
-{userAccessLevel !== "airliner" && userAccessLevel !== "examiner" && (
+              {userAccessLevel !== "airliner" &&
+                userAccessLevel !== "examiner" && (
+                  <Item
+                    title="Profile Form"
+                    to="/form"
+                    icon={<PersonOutlinedIcon />}
+                    selected={selected}
+                    setSelected={setSelected}
+                  />
+                )}
 
-    <Item
-      title="Manage Team"
-      to="/team"
-      icon={<PeopleOutlinedIcon />}
-      selected={selected}
-      setSelected={setSelected}
-    />
-  )}
-  
-  {userAccessLevel !== "airliner" && userAccessLevel !== "examiner" && (
-    <Item
-      title="Profile Form"
-      to="/form"
-      icon={<PersonOutlinedIcon />}
-      selected={selected}
-      setSelected={setSelected}
-    />
-  )}
+              <Typography
+                variant="h6"
+                color={colors.grey[300]}
+                sx={{ m: "15px 0 5px 20px" }}
+              >
+                Pages
+              </Typography>
 
-           
-           
+              <Item
+                title="Calendar"
+                to="/calendar"
+                icon={<CalendarTodayOutlinedIcon />}
+                selected={selected}
+                setSelected={setSelected}
+              />
+              <Item
+                title="FAQ Page"
+                to="/faq"
+                icon={<HelpOutlineOutlinedIcon />}
+                selected={selected}
+                setSelected={setSelected}
+              />
 
-            <Typography
-              variant="h6"
-              color={colors.grey[300]}
-              sx={{ m: "15px 0 5px 20px" }}
-            >
-              Pages
-            </Typography>
-
-            
-            <Item
-              title="Calendar"
-              to="/calendar"
-              icon={<CalendarTodayOutlinedIcon />}
-              selected={selected}
-              setSelected={setSelected}
-            />
-            <Item
-              title="FAQ Page"
-              to="/faq"
-              icon={<HelpOutlineOutlinedIcon />}
-              selected={selected}
-              setSelected={setSelected}
-            />
- {/*
-            <Typography
-              variant="h6"
-              color={colors.grey[300]}
-              sx={{ m: "15px 0 5px 20px" }}
-            >
-             
-              Charts
-            </Typography>
-            <Item
-              title="Bar Chart"
-              to="/bar"
-              icon={<BarChartOutlinedIcon />}
-              selected={selected}
-              setSelected={setSelected}
-            />
-            <Item
-              title="Pie Chart"
-              to="/pie"
-              icon={<PieChartOutlineOutlinedIcon />}
-              selected={selected}
-              setSelected={setSelected}
-            />
-            <Item
-              title="Line Chart"
-              to="/line"
-              icon={<TimelineOutlinedIcon />}
-              selected={selected}
-              setSelected={setSelected}
-            />
-            <Item
-              title="Geography Chart"
-              to="/geography"
-              icon={<MapOutlinedIcon />}
-              selected={selected}
-              setSelected={setSelected}
-            />
-            */}
-          </Box>
+              <Typography
+                variant="h6"
+                color={colors.grey[300]}
+                sx={{ m: "15px 0 5px 20px" }}
+              >
+                Charts
+              </Typography>
+              <Item
+                title="Bar Chart"
+                to="/bar"
+                icon={<BarChartOutlinedIcon />}
+                selected={selected}
+                setSelected={setSelected}
+              />
+              <Item
+                title="Pie Chart"
+                to="/pie"
+                icon={<PieChartOutlineOutlinedIcon />}
+                selected={selected}
+                setSelected={setSelected}
+              />
+              <Item
+                title="Line Chart"
+                to="/line"
+                icon={<TimelineOutlinedIcon />}
+                selected={selected}
+                setSelected={setSelected}
+              />
+              <Item
+                title="Geography Chart"
+                to="/geography"
+                icon={<MapOutlinedIcon />}
+                selected={selected}
+                setSelected={setSelected}
+              />
+            </Box>
+          )}
         </Menu>
       </ProSidebar>
     </Box>

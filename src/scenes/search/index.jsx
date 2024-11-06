@@ -1,18 +1,37 @@
 import { useEffect, useState } from "react";
-import { Box, Modal, IconButton, Typography, TextField, Button, MenuItem, Dialog, DialogActions, DialogContent, DialogTitle, Menu } from "@mui/material";
+import {
+  Box,
+  Modal,
+  IconButton,
+  Typography,
+  TextField,
+  Button,
+  MenuItem,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Menu,
+} from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
-import { collection, onSnapshot, setDoc,getDocs, doc } from "firebase/firestore"; // Changed getDocs to onSnapshot
+import {
+  collection,
+  onSnapshot,
+  setDoc,
+  getDocs,
+  doc,
+} from "firebase/firestore"; // Changed getDocs to onSnapshot
 import { getStorage } from "firebase/storage";
 import { db } from "../../Firebase";
 import Header from "../../components/Header";
 import { tokens } from "../../theme";
-import MoreVertIcon from '@mui/icons-material/MoreVert';
-import CloseIcon from '@mui/icons-material/Close';
-import RefreshIcon from '@mui/icons-material/Refresh';
-import AddBaggage from "./AddBaggage"; 
-import ViewBaggage from "./ViewBaggage"; 
-import SearchIcon from '@mui/icons-material/Search';
+import MoreVertIcon from "@mui/icons-material/MoreVert";
+import CloseIcon from "@mui/icons-material/Close";
+import RefreshIcon from "@mui/icons-material/Refresh";
+import AddBaggage from "./AddBaggage";
+import ViewBaggage from "./ViewBaggage";
+import SearchIcon from "@mui/icons-material/Search";
 
 const Contacts = () => {
   const [data, setData] = useState([]);
@@ -32,21 +51,36 @@ const Contacts = () => {
   const [openBaggageList, setOpenBaggageList] = useState(false);
   const [selectedPassportNumber, setSelectedPassportNumber] = useState("");
 
-  const columns = createColumns(storage, setSelectedImage, setOpen, setAnchorEl, setSelectedPassportNumber);
-  
+  const columns = createColumns(
+    storage,
+    setSelectedImage,
+    setOpen,
+    setAnchorEl,
+    setSelectedPassportNumber
+  );
+
   useEffect(() => {
     // Set up a Firestore listener for real-time updates
-    const unsubscribe = onSnapshot(collection(db, "ResultTable"), (querySnapshot) => {
-      const fetchedData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const unsubscribe = onSnapshot(
+      collection(db, "ResultTable"),
+      (querySnapshot) => {
+        const fetchedData = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
 
-      // Sort the data by the "Time" field in descending order
-      const sortedData = fetchedData.sort((a, b) => new Date(b.Time) - new Date(a.Time));
+        // Sort the data by the "Time" field in descending order
+        const sortedData = fetchedData.sort(
+          (a, b) => new Date(b.Time) - new Date(a.Time)
+        );
 
-      setData(sortedData);
-      setFilteredData(sortedData); // Set both data and filtered data
-    }, (error) => {
-      console.error("Error fetching Firestore data: ", error);
-    });
+        setData(sortedData);
+        setFilteredData(sortedData); // Set both data and filtered data
+      },
+      (error) => {
+        console.error("Error fetching Firestore data: ", error);
+      }
+    );
 
     // Cleanup subscription on unmount
     return () => unsubscribe();
@@ -55,23 +89,30 @@ const Contacts = () => {
   const fetchData = async () => {
     try {
       const querySnapshot = await getDocs(collection(db, "ResultTable"));
-      const fetchedData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      
+      const fetchedData = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
       // Sort the data by the "Time" field in descending order
-      const sortedData = fetchedData.sort((a, b) => new Date(b.Time) - new Date(a.Time));
-      
+      const sortedData = fetchedData.sort(
+        (a, b) => new Date(b.Time) - new Date(a.Time)
+      );
+
       setData(sortedData);
       setFilteredData(sortedData); // Set both data and filtered data
     } catch (error) {
       console.error("Error fetching Firestore data: ", error);
     }
   };
-  
+
   const handleMenuClick = (event) => {
     setAnchorEl(event.currentTarget);
   };
   const handleAddBaggage = () => {
-    const selectedPassenger = filteredData.find(item => item["Document Number"] === selectedPassportNumber);
+    const selectedPassenger = filteredData.find(
+      (item) => item["passportNumber"] === selectedPassportNumber
+    );
     console.log("Selected Passenger Details:", selectedPassenger); // Log the selected passenger details
     setOpenBaggageForm(true); // Open the AddBaggage modal
     setAnchorEl(null); // Close the menu
@@ -84,11 +125,16 @@ const Contacts = () => {
   };
 
   const handleSearch = () => {
-    const filtered = data.filter(item => String(item["Document Number"] || "").toLowerCase().includes(searchQuery.toLowerCase()));
+    const filtered = data.filter((item) =>
+      String(item["Document Number"] || "")
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase())
+    );
     setFilteredData(filtered);
-    setNewPassenger(prevState => ({
+    setNewPassenger((prevState) => ({
       ...prevState,
-      passportNumber: filtered.length > 0 ? filtered[0]["Document Number"] : searchQuery
+      passportNumber:
+        filtered.length > 0 ? filtered[0]["Document Number"] : searchQuery,
     }));
 
     if (filtered.length === 0 && searchQuery) {
@@ -103,13 +149,25 @@ const Contacts = () => {
 
   const handleFormChange = (e) => {
     const { name, value } = e.target;
-    setNewPassenger(prevState => ({ ...prevState, [name]: value }));
+    setNewPassenger((prevState) => ({ ...prevState, [name]: value }));
   };
 
   const validateForm = () => {
     const errors = {};
-    ["passportNumber", "firstName", "surname", "gender", "birthdate", "nationality", "placeIssued", "occupation"].forEach(field => {
-      if (!newPassenger[field]) errors[field] = `${field.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())} is required`;
+    [
+      "passportNumber",
+      "firstName",
+      "surname",
+      "gender",
+      "birthdate",
+      "nationality",
+      "placeIssued",
+      "occupation",
+    ].forEach((field) => {
+      if (!newPassenger[field])
+        errors[field] = `${field
+          .replace(/([A-Z])/g, " $1")
+          .replace(/^./, (str) => str.toUpperCase())} is required`;
     });
     return errors;
   };
@@ -120,30 +178,32 @@ const Contacts = () => {
       setFormErrors(errors);
       return;
     }
-  
+
     // Create a new object with the required keys
     const passengerData = {
-      "Date of Birth": newPassenger.birthdate,
-      "Document Number": newPassenger.passportNumber,
-      "First Name": newPassenger.firstName,
-      "Gender": newPassenger.gender,
-      "Last Name": newPassenger.surname,
-      "Middle Name": newPassenger.middleName,
-      "Nationality": newPassenger.nationality,
-      "Occupation": newPassenger.occupation,
-      "Place Issued": newPassenger.placeIssued,
-      "Time": new Date().toISOString(), // Ensure the time is in the correct format
+      dateOfBirth: newPassenger.birthdate,
+      passportNumber: newPassenger.passportNumber,
+      firstName: newPassenger.firstName,
+      gender: newPassenger.gender,
+      lastName: newPassenger.surname,
+      middleName: newPassenger.middleName,
+      mationality: newPassenger.nationality,
+      occupation: newPassenger.occupation,
+      placeIssued: newPassenger.placeIssued,
+      time: new Date().toISOString(), // Ensure the time is in the correct format
     };
-  
+
     try {
-      await setDoc(doc(db, "ResultTable", newPassenger.passportNumber), passengerData);
+      await setDoc(
+        doc(db, "ResultTable", newPassenger.passportNumber),
+        passengerData
+      );
       resetForm();
       fetchData();
     } catch (error) {
       console.error("Error saving new passenger data: ", error);
     }
   };
-  
 
   const handleConfirmCreatePassenger = () => {
     setOpenConfirmation(false);
@@ -156,39 +216,104 @@ const Contacts = () => {
     setNewPassenger(initialPassengerState());
   };
 
-    // Rest of your component...
-    return (
-      <Box m="20px">
-        <Header title="Passenger Information" subtitle="List of Passenger Information" />
-        <SearchBar
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          handleSearch={handleSearch}
-          handleReload={handleReload}
-          theme={theme}
-          colors={colors}
-        />
-        <DataGridContainer filteredData={filteredData} colors={colors} columns={columns} />
-        <ConfirmationDialog open={openConfirmation} setOpen={setOpenConfirmation} handleConfirm={handleConfirmCreatePassenger} />
-        <PassengerForm open={openForm} setOpen={setOpenForm} newPassenger={newPassenger} handleFormChange={handleFormChange} formErrors={formErrors} handleFormSubmit={handleFormSubmit} theme={theme} colors={colors} />
-        <AddBaggage open={openBaggageForm} setOpen={setOpenBaggageForm} passportNumber={selectedPassportNumber} 
-          firstName={filteredData.find(item => item["Document Number"] === selectedPassportNumber)?.["First Name"]}
-          surName={filteredData.find(item => item["Document Number"] === selectedPassportNumber)?.["Last Name"]}
-          middleName={filteredData.find(item => item["Document Number"] === selectedPassportNumber)?.["Middle Name"]}
-          gender={filteredData.find(item => item["Document Number"] === selectedPassportNumber)?.["Gender"]}
-          dateOfBirth={filteredData.find(item => item["Document Number"] === selectedPassportNumber)?.["Date of Birth"]}
-          nationality={filteredData.find(item => item["Document Number"] === selectedPassportNumber)?.["Nationality"]}
-          placeIssued={filteredData.find(item => item["Document Number"] === selectedPassportNumber)?.["Place Issued"]}
-          occupation={filteredData.find(item => item["Document Number"] === selectedPassportNumber)?.["Occupation"]}
-        />
-        <ViewBaggage open={openBaggageList} onClose={() => setOpenBaggageList(false)} passportNumber={selectedPassportNumber} />
-        <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={() => setAnchorEl(null)}>
-          <MenuItem onClick={handleAddBaggage}>Add Baggage Declaration</MenuItem>
-          <MenuItem onClick={handleViewBaggage}>View Baggage Declaration</MenuItem>
-        </Menu>
-      </Box>
-    );
-  };
+  // Rest of your component...
+  return (
+    <Box m="20px">
+      <Header
+        title="Passenger Information"
+        subtitle="List of Passenger Information"
+      />
+      <SearchBar
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        handleSearch={handleSearch}
+        handleReload={handleReload}
+        theme={theme}
+        colors={colors}
+      />
+      <DataGridContainer
+        filteredData={filteredData}
+        colors={colors}
+        columns={columns}
+      />
+      <ConfirmationDialog
+        open={openConfirmation}
+        setOpen={setOpenConfirmation}
+        handleConfirm={handleConfirmCreatePassenger}
+      />
+      <PassengerForm
+        open={openForm}
+        setOpen={setOpenForm}
+        newPassenger={newPassenger}
+        handleFormChange={handleFormChange}
+        formErrors={formErrors}
+        handleFormSubmit={handleFormSubmit}
+        theme={theme}
+        colors={colors}
+      />
+      <AddBaggage
+        open={openBaggageForm}
+        setOpen={setOpenBaggageForm}
+        passportNumber={selectedPassportNumber}
+        firstName={
+          filteredData.find(
+            (item) => item["passportNumber"] === selectedPassportNumber
+          )?.["firstName"]
+        }
+        surName={
+          filteredData.find(
+            (item) => item["passportNumber"] === selectedPassportNumber
+          )?.["lastName"]
+        }
+        middleName={
+          filteredData.find(
+            (item) => item["passportNumber"] === selectedPassportNumber
+          )?.["middleName"]
+        }
+        gender={
+          filteredData.find(
+            (item) => item["passportNumber"] === selectedPassportNumber
+          )?.["gender"]
+        }
+        dateOfBirth={
+          filteredData.find(
+            (item) => item["passportNumber"] === selectedPassportNumber
+          )?.["dateOfBirth"]
+        }
+        nationality={
+          filteredData.find(
+            (item) => item["passportNumber"] === selectedPassportNumber
+          )?.["nationality"]
+        }
+        placeIssued={
+          filteredData.find(
+            (item) => item["passportNumber"] === selectedPassportNumber
+          )?.["placeIssued"]
+        }
+        occupation={
+          filteredData.find(
+            (item) => item["passportNumber"] === selectedPassportNumber
+          )?.["occupation"]
+        }
+      />
+      <ViewBaggage
+        open={openBaggageList}
+        onClose={() => setOpenBaggageList(false)}
+        passportNumber={selectedPassportNumber}
+      />
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={() => setAnchorEl(null)}
+      >
+        <MenuItem onClick={handleAddBaggage}>Add Baggage Declaration</MenuItem>
+        <MenuItem onClick={handleViewBaggage}>
+          View Baggage Declaration
+        </MenuItem>
+      </Menu>
+    </Box>
+  );
+};
 
 const initialPassengerState = () => ({
   firstName: "",
@@ -202,33 +327,54 @@ const initialPassengerState = () => ({
   occupation: "",
 });
 
-const createColumns = (storage, setSelectedImage, setOpen, setAnchorEl, setSelectedPassportNumber) => [
+const createColumns = (
+  storage,
+  setSelectedImage,
+  setOpen,
+  setAnchorEl,
+  setSelectedPassportNumber
+) => [
   { field: "id", headerName: "ID", flex: 1 },
-  { field: "First Name", headerName: "First Name", flex: 1 },
-  { field: "Last Name", headerName: "Last Name", flex: 1 },
-  { field: "Gender", headerName: "Gender", flex: 1 },
-  { field: "Date of Birth", headerName: "Date of Birth", flex: 1 },
-  { field: "Nationality", headerName: "Nationality", flex: 1 },
-  { field: "Place Issued", headerName: "Place Issued", flex: 1 },
-  { field: "Occupation", headerName: "Occupation", flex: 1 },
-  { field: "Time", headerName: "Time", flex: 1, type: 'dateTime', valueGetter: ({ value }) => value && new Date(value), sortDirection: 'desc' }, // Add Time column
+  { field: "firstName", headerName: "First Name", flex: 1 },
+  { field: "lastName", headerName: "Last Name", flex: 1 },
+  { field: "gender", headerName: "Gender", flex: 1 },
+  { field: "dateOfBirth", headerName: "Date of Birth", flex: 1 },
+  { field: "nationality", headerName: "Nationality", flex: 1 },
+  { field: "placeIssued", headerName: "Place Issued", flex: 1 },
+  { field: "occupation", headerName: "Occupation", flex: 1 },
+  {
+    field: "time",
+    headerName: "Time",
+    flex: 1,
+    type: "dateTime",
+    valueGetter: ({ value }) => value && new Date(value),
+    sortDirection: "desc",
+  }, // Add Time column
   {
     field: "actions",
     headerName: "",
     flex: 1,
     renderCell: (params) => (
-      <IconButton onClick={(event) => {
-        setSelectedPassportNumber(params.row["Document Number"]); // Set the selected passport number
-        setAnchorEl(event.currentTarget);
-      }}>
+      <IconButton
+        onClick={(event) => {
+          setSelectedPassportNumber(params.row["passportNumber"]); // Set the selected passport number
+          setAnchorEl(event.currentTarget);
+        }}
+      >
         <MoreVertIcon />
       </IconButton>
     ),
   },
 ];
 
-
-const SearchBar = ({ searchQuery, setSearchQuery, handleSearch, handleReload, theme, colors }) => (
+const SearchBar = ({
+  searchQuery,
+  setSearchQuery,
+  handleSearch,
+  handleReload,
+  theme,
+  colors,
+}) => (
   <Box width="50%" mx="auto" mb={2}>
     <Box display="flex" alignItems="center">
       <TextField
@@ -240,14 +386,18 @@ const SearchBar = ({ searchQuery, setSearchQuery, handleSearch, handleReload, th
         fullWidth
         InputProps={{
           style: {
-            backgroundColor: theme.palette.mode === 'dark' ? colors.primary[500] : '#fff',
-            color: theme.palette.mode === 'dark' ? colors.grey[100] : '#000',
-            borderRadius: '5px',
+            backgroundColor:
+              theme.palette.mode === "dark" ? colors.primary[500] : "#fff",
+            color: theme.palette.mode === "dark" ? colors.grey[100] : "#000",
+            borderRadius: "5px",
           },
         }}
         InputLabelProps={{
           style: {
-            color: theme.palette.mode === 'dark' ? colors.grey[300] : colors.grey[800],
+            color:
+              theme.palette.mode === "dark"
+                ? colors.grey[300]
+                : colors.grey[800],
           },
         }}
       />
@@ -262,17 +412,35 @@ const SearchBar = ({ searchQuery, setSearchQuery, handleSearch, handleReload, th
 );
 
 const DataGridContainer = ({ filteredData, colors, columns }) => (
-  <Box m="40px 0 0 0" height="75vh" sx={{
-    "& .MuiDataGrid-root": { border: "none" },
-    "& .MuiDataGrid-cell": { borderBottom: "none" },
-    "& .name-column--cell": { color: colors.greenAccent[300] },
-    "& .MuiDataGrid-columnHeaders": { backgroundColor: colors.blueAccent[700], borderBottom: "none" },
-    "& .MuiDataGrid-virtualScroller": { backgroundColor: colors.primary[400] },
-    "& .MuiDataGrid-footerContainer": { borderTop: "none", backgroundColor: colors.blueAccent[700] },
-    "& .MuiCheckbox-root": { color: `${colors.greenAccent[200]} !important` },
-    "& .MuiDataGrid-toolbarContainer .MuiButton-text": { color: `${colors.grey[100]} !important` },
-  }}>
-    <DataGrid rows={filteredData} columns={columns} components={{ Toolbar: GridToolbar }} />
+  <Box
+    m="40px 0 0 0"
+    height="75vh"
+    sx={{
+      "& .MuiDataGrid-root": { border: "none" },
+      "& .MuiDataGrid-cell": { borderBottom: "none" },
+      "& .name-column--cell": { color: colors.greenAccent[300] },
+      "& .MuiDataGrid-columnHeaders": {
+        backgroundColor: colors.blueAccent[700],
+        borderBottom: "none",
+      },
+      "& .MuiDataGrid-virtualScroller": {
+        backgroundColor: colors.primary[400],
+      },
+      "& .MuiDataGrid-footerContainer": {
+        borderTop: "none",
+        backgroundColor: colors.blueAccent[700],
+      },
+      "& .MuiCheckbox-root": { color: `${colors.greenAccent[200]} !important` },
+      "& .MuiDataGrid-toolbarContainer .MuiButton-text": {
+        color: `${colors.grey[100]} !important`,
+      },
+    }}
+  >
+    <DataGrid
+      rows={filteredData}
+      columns={columns}
+      components={{ Toolbar: GridToolbar }}
+    />
   </Box>
 );
 
@@ -280,7 +448,9 @@ const ConfirmationDialog = ({ open, setOpen, handleConfirm }) => (
   <Dialog open={open} onClose={() => setOpen(false)}>
     <DialogTitle>Confirmation</DialogTitle>
     <DialogContent>
-      <Typography>Passenger not found. Would you like to create a new passenger?</Typography>
+      <Typography>
+        Passenger not found. Would you like to create a new passenger?
+      </Typography>
     </DialogContent>
     <DialogActions>
       <Button onClick={() => setOpen(false)}>Cancel</Button>
@@ -289,7 +459,16 @@ const ConfirmationDialog = ({ open, setOpen, handleConfirm }) => (
   </Dialog>
 );
 
-const PassengerForm = ({ open, setOpen, newPassenger, handleFormChange, formErrors, handleFormSubmit, theme, colors }) => (
+const PassengerForm = ({
+  open,
+  setOpen,
+  newPassenger,
+  handleFormChange,
+  formErrors,
+  handleFormSubmit,
+  theme,
+  colors,
+}) => (
   <Dialog open={open} onClose={() => setOpen(false)}>
     <DialogTitle>Add New Passenger</DialogTitle>
     <DialogContent>

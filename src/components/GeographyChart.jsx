@@ -4,12 +4,19 @@ import { geoFeatures } from "../data/mockGeoFeatures";
 import { tokens } from "../theme";
 import { mockGeographyData as data } from "../data/mockData";
 
-const GeographyChart = ({ isDashboard = false }) => {
+const GeographyChart = ({ countryColorMap, isDashboard = false }) => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+
+  // Update data to use the country color mapping
+  const coloredData = data.map((item) => ({
+    ...item,
+    color: countryColorMap[item.id] || "#666666", // Use the color from the map or default to grey
+  }));
+
   return (
     <ResponsiveChoropleth
-      data={data}
+      data={coloredData}
       theme={{
         axis: {
           domain: {
@@ -78,6 +85,8 @@ const GeographyChart = ({ isDashboard = false }) => {
             ]
           : undefined
       }
+      // Use the color property from the data
+      getColor={(feature) => feature.properties.color || "#666666"} // Fallback color
     />
   );
 };

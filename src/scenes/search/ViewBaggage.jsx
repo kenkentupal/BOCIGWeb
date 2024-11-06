@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -15,13 +15,13 @@ import {
   Typography,
   Box,
   IconButton,
-} from '@mui/material';
-import { getFirestore, collection, onSnapshot } from 'firebase/firestore'; // Use onSnapshot
-import { getStorage, ref, getDownloadURL } from 'firebase/storage';
-import CloseIcon from '@mui/icons-material/Close';
-import ImageIcon from '@mui/icons-material/Image';
+} from "@mui/material";
+import { getFirestore, collection, onSnapshot } from "firebase/firestore"; // Use onSnapshot
+import { getStorage, ref, getDownloadURL } from "firebase/storage";
+import CloseIcon from "@mui/icons-material/Close";
+import ImageIcon from "@mui/icons-material/Image";
 import { tokens } from "../../theme";
-import { useTheme } from '@mui/material/styles';
+import { useTheme } from "@mui/material/styles";
 
 const ViewBaggage = ({ open, onClose, passportNumber }) => {
   const [baggageInfo, setBaggageInfo] = useState([]);
@@ -31,7 +31,7 @@ const ViewBaggage = ({ open, onClose, passportNumber }) => {
 
   useEffect(() => {
     const db = getFirestore();
-    const baggageCollection = collection(db, 'BaggageInfo');
+    const baggageCollection = collection(db, "BaggageInfo");
 
     // Set up real-time listener
     const unsubscribe = onSnapshot(baggageCollection, (snapshot) => {
@@ -47,12 +47,20 @@ const ViewBaggage = ({ open, onClose, passportNumber }) => {
   }, []);
 
   // Filter baggage info by the passed passportNumber
-  const filteredBaggageInfo = baggageInfo.filter((baggage) => baggage.passportNumber === passportNumber);
+  const filteredBaggageInfo = baggageInfo.filter(
+    (baggage) => baggage.passportNumber === passportNumber
+  );
 
   const handleImageClick = async (baggage) => {
     const storage = getStorage();
-    const waitImageRef = ref(storage, `FaceImages/${baggage.airportArrival}/${baggage.airportArrival}wait/${baggage.passportNumber}${baggage.dateOfArrival}.png`);
-    const doneImageRef = ref(storage, `FaceImages/${baggage.airportArrival}/${baggage.airportArrival}done/${baggage.passportNumber}${baggage.dateOfArrival}.png`);
+    const waitImageRef = ref(
+      storage,
+      `FaceImages/${baggage.airportArrival}/${baggage.airportArrival}wait/${baggage.passportNumber}${baggage.dateOfArrival}.png`
+    );
+    const doneImageRef = ref(
+      storage,
+      `FaceImages/${baggage.airportArrival}/${baggage.airportArrival}done/${baggage.passportNumber}${baggage.dateOfArrival}.png`
+    );
 
     try {
       const url = await getDownloadURL(waitImageRef);
@@ -76,8 +84,10 @@ const ViewBaggage = ({ open, onClose, passportNumber }) => {
   const capitalizeFirstLetter = (string) => {
     return string.charAt(0).toUpperCase() + string.slice(1);
   };
-// Sort filteredBaggageInfo by dateOfArrival in descending order (newest first)
-const sortedBaggageInfo = filteredBaggageInfo.sort((a, b) => new Date(b.dateOfArrival) - new Date(a.dateOfArrival));
+  // Sort filteredBaggageInfo by dateOfArrival in descending order (newest first)
+  const sortedBaggageInfo = filteredBaggageInfo.sort(
+    (a, b) => new Date(b.dateOfArrival) - new Date(a.dateOfArrival)
+  );
 
   return (
     <>
@@ -88,14 +98,18 @@ const sortedBaggageInfo = filteredBaggageInfo.sort((a, b) => new Date(b.dateOfAr
         maxWidth="lg"
         PaperProps={{
           style: {
-            width: '100%',
-            maxWidth: 'none',
+            width: "100%",
+            maxWidth: "none",
             backgroundColor: colors.primary[400],
           },
         }}
       >
         <DialogTitle>
-          <Box display="flex" justifyContent="space-between" alignItems="center">
+          <Box
+            display="flex"
+            justifyContent="space-between"
+            alignItems="center"
+          >
             <Typography variant="h6" color={colors.grey[100]}>
               View Baggage Information
             </Typography>
@@ -105,7 +119,10 @@ const sortedBaggageInfo = filteredBaggageInfo.sort((a, b) => new Date(b.dateOfAr
           </Box>
         </DialogTitle>
         <DialogContent dividers>
-          <TableContainer component={Paper} sx={{ backgroundColor: colors.primary[500] }}>
+          <TableContainer
+            component={Paper}
+            sx={{ backgroundColor: colors.primary[500] }}
+          >
             <Table stickyHeader>
               <TableHead>
                 <TableRow>
@@ -125,13 +142,13 @@ const sortedBaggageInfo = filteredBaggageInfo.sort((a, b) => new Date(b.dateOfAr
                     "Goods Value",
                     "Peso/Dollar Value",
                     "Bringing Items",
-                    "Image"
+                    "Image",
                   ].map((header) => (
                     <TableCell
                       key={header}
                       align="center"
                       style={{
-                        fontWeight: 'bold',
+                        fontWeight: "bold",
                         backgroundColor: colors.blueAccent[700],
                         color: colors.grey[100],
                       }}
@@ -142,48 +159,132 @@ const sortedBaggageInfo = filteredBaggageInfo.sort((a, b) => new Date(b.dateOfAr
                 </TableRow>
               </TableHead>
               <TableBody>
-  {sortedBaggageInfo.length > 0 ? (
-    sortedBaggageInfo.map((baggage) => (
-      <TableRow key={baggage.id} sx={{ backgroundColor: colors.primary[400] }}>
-        <TableCell align="center" sx={{ color: colors.grey[100] }}>{baggage.passportNumber}</TableCell>
-        <TableCell align="center" sx={{ color: colors.grey[100] }}>{baggage.dateOfLastDeparture}</TableCell>
-        <TableCell align="center" sx={{ color: colors.grey[100] }}>{baggage.countryOfOrigin}</TableCell>
-        <TableCell align="center" sx={{ color: colors.grey[100] }}>{baggage.dateOfArrival}</TableCell>
-        <TableCell align="center" sx={{ color: colors.grey[100] }}>{baggage.flightOrVessel}</TableCell>
-        <TableCell align="center" sx={{ color: colors.grey[100] }}>{baggage.airportArrival}</TableCell>
-        <TableCell align="center" sx={{ color: colors.grey[100] }}>{baggage.familyMembers.below18}</TableCell>
-        <TableCell align="center" sx={{ color: colors.grey[100] }}>{baggage.familyMembers.above18}</TableCell>
-        <TableCell align="center" sx={{ color: colors.grey[100] }}>{baggage.numberOfBaggage.checkedIn}</TableCell>
-        <TableCell align="center" sx={{ color: colors.grey[100] }}>{baggage.numberOfBaggage.handCarried}</TableCell>
-        <TableCell align="center" sx={{ color: colors.grey[100] }}>{baggage.travelerType}</TableCell>
-        <TableCell align="center" sx={{ color: colors.grey[100] }}>{baggage.purposeOfTravel}</TableCell>
-        <TableCell align="center" sx={{ color: colors.grey[100] }}>{baggage.goodsValue}</TableCell>
-        <TableCell align="center" sx={{ color: colors.grey[100] }}>{baggage.pesoDollarValue}</TableCell>
-        <TableCell align="center" sx={{ color: colors.grey[100] }}>
-          {Object.entries(baggage.bringingItems)
-            .filter(([key, value]) => value && key !== 'otherGoods')
-            .map(([key]) => capitalizeFirstLetter(key))
-            .join(', ')}
-          {baggage.bringingItems.otherGoods && (
-            <span> (Other Goods: {baggage.bringingItems.otherGoods})</span>
-          )}
-        </TableCell>
-        <TableCell align="center">
-          <IconButton onClick={() => handleImageClick(baggage)}>
-            <ImageIcon sx={{ color: colors.greenAccent[300] }} />
-          </IconButton>
-        </TableCell>
-      </TableRow>
-    ))
-  ) : (
-    <TableRow>
-      <TableCell colSpan={16} align="center" sx={{ color: colors.grey[100] }}>
-        No baggage information found for this passport number.
-      </TableCell>
-    </TableRow>
-  )}
-</TableBody>
-
+                {sortedBaggageInfo.length > 0 ? (
+                  sortedBaggageInfo.map((baggage) => (
+                    <TableRow
+                      key={baggage.id}
+                      sx={{ backgroundColor: colors.primary[400] }}
+                    >
+                      <TableCell
+                        align="center"
+                        sx={{ color: colors.grey[100] }}
+                      >
+                        {baggage.passportNumber}
+                      </TableCell>
+                      <TableCell
+                        align="center"
+                        sx={{ color: colors.grey[100] }}
+                      >
+                        {baggage.dateOfLastDeparture}
+                      </TableCell>
+                      <TableCell
+                        align="center"
+                        sx={{ color: colors.grey[100] }}
+                      >
+                        {baggage.countryOfOrigin}
+                      </TableCell>
+                      <TableCell
+                        align="center"
+                        sx={{ color: colors.grey[100] }}
+                      >
+                        {baggage.dateOfArrival}
+                      </TableCell>
+                      <TableCell
+                        align="center"
+                        sx={{ color: colors.grey[100] }}
+                      >
+                        {baggage.flightOrVessel}
+                      </TableCell>
+                      <TableCell
+                        align="center"
+                        sx={{ color: colors.grey[100] }}
+                      >
+                        {baggage.airportArrival}
+                      </TableCell>
+                      <TableCell
+                        align="center"
+                        sx={{ color: colors.grey[100] }}
+                      >
+                        {baggage.familyMembers.below18}
+                      </TableCell>
+                      <TableCell
+                        align="center"
+                        sx={{ color: colors.grey[100] }}
+                      >
+                        {baggage.familyMembers.above18}
+                      </TableCell>
+                      <TableCell
+                        align="center"
+                        sx={{ color: colors.grey[100] }}
+                      >
+                        {baggage.numberOfBaggage.checkedIn}
+                      </TableCell>
+                      <TableCell
+                        align="center"
+                        sx={{ color: colors.grey[100] }}
+                      >
+                        {baggage.numberOfBaggage.handCarried}
+                      </TableCell>
+                      <TableCell
+                        align="center"
+                        sx={{ color: colors.grey[100] }}
+                      >
+                        {baggage.travelerType}
+                      </TableCell>
+                      <TableCell
+                        align="center"
+                        sx={{ color: colors.grey[100] }}
+                      >
+                        {baggage.purposeOfTravel}
+                      </TableCell>
+                      <TableCell
+                        align="center"
+                        sx={{ color: colors.grey[100] }}
+                      >
+                        {baggage.goodsValue}
+                      </TableCell>
+                      <TableCell
+                        align="center"
+                        sx={{ color: colors.grey[100] }}
+                      >
+                        {baggage.pesoDollarValue}
+                      </TableCell>
+                      <TableCell
+                        align="center"
+                        sx={{ color: colors.grey[100] }}
+                      >
+                        {Object.entries(baggage.bringingItems)
+                          .filter(
+                            ([key, value]) => value && key !== "otherGoods"
+                          )
+                          .map(([key]) => capitalizeFirstLetter(key))
+                          .join(", ")}
+                        {baggage.bringingItems.otherGoods && (
+                          <span>
+                            {" "}
+                            (Other Goods: {baggage.bringingItems.otherGoods})
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell align="center">
+                        <IconButton onClick={() => handleImageClick(baggage)}>
+                          <ImageIcon sx={{ color: colors.greenAccent[300] }} />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell
+                      colSpan={16}
+                      align="center"
+                      sx={{ color: colors.grey[100] }}
+                    >
+                      No baggage information found for this passport number.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
             </Table>
           </TableContainer>
         </DialogContent>
@@ -199,7 +300,11 @@ const sortedBaggageInfo = filteredBaggageInfo.sort((a, b) => new Date(b.dateOfAr
         <DialogTitle>Image Captured</DialogTitle>
         <DialogContent>
           {selectedImage && (
-            <img src={selectedImage} alt="Baggage" style={{ width: '100%', height: 'auto' }} />
+            <img
+              src={selectedImage}
+              alt="Baggage"
+              style={{ width: "100%", height: "auto" }}
+            />
           )}
         </DialogContent>
         <DialogActions>

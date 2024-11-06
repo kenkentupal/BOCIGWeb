@@ -1,6 +1,21 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Box, Typography, Button, useTheme, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Menu, MenuItem, IconButton, Snackbar, Alert } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Button,
+  useTheme,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Menu,
+  MenuItem,
+  IconButton,
+  Snackbar,
+  Alert,
+} from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { tokens } from "../../theme";
 import AdminPanelSettingsOutlinedIcon from "@mui/icons-material/AdminPanelSettingsOutlined";
@@ -10,7 +25,7 @@ import MoreVertIcon from "@mui/icons-material/MoreVert";
 import FlightTakeoffOutlinedIcon from "@mui/icons-material/FlightTakeoffOutlined";
 
 import Header from "../../components/Header";
-import { db, collection, getDocs } from "../../Firebase"; 
+import { db, collection, getDocs } from "../../Firebase";
 import { getAuth, sendPasswordResetEmail } from "firebase/auth";
 
 const Team = () => {
@@ -31,7 +46,7 @@ const Team = () => {
 
   // Define columns for DataGrid
   const columns = [
-    { field: "id", headerName: "ID", flex: 1,},
+    { field: "id", headerName: "ID", flex: 1 },
     {
       field: "fname",
       headerName: "First Name",
@@ -81,7 +96,6 @@ const Team = () => {
           <Typography color={colors.grey[100]} sx={{ ml: "5px" }}>
             {accessLevel}
           </Typography>
-
         </Box>
       ),
     },
@@ -90,7 +104,11 @@ const Team = () => {
       headerName: "Actions",
       renderCell: (params) => (
         <Box display="flex" justifyContent="center">
-          <IconButton onClick={(event) => handleMenuClick(event, params.row.email, params.row.id)}>
+          <IconButton
+            onClick={(event) =>
+              handleMenuClick(event, params.row.email, params.row.id)
+            }
+          >
             <MoreVertIcon />
           </IconButton>
           <Menu
@@ -98,7 +116,11 @@ const Team = () => {
             open={Boolean(anchorEl)}
             onClose={handleMenuClose}
           >
-            <MenuItem onClick={() => handleResetPassword(params.row.email, params.row.id)}>
+            <MenuItem
+              onClick={() =>
+                handleResetPassword(params.row.email, params.row.id)
+              }
+            >
               Reset Password
             </MenuItem>
           </Menu>
@@ -118,7 +140,7 @@ const Team = () => {
   };
 
   const handleResetPassword = (email, id) => {
-    setDialogAction('resetPassword');
+    setDialogAction("resetPassword");
     setOpenDialog(true);
     handleMenuClose(); // Close the menu
   };
@@ -128,14 +150,16 @@ const Team = () => {
   };
 
   const handleConfirmAction = async () => {
-    if (dialogAction === 'resetPassword') {
+    if (dialogAction === "resetPassword") {
       try {
         const auth = getAuth();
         await sendPasswordResetEmail(auth, selectedUserEmail);
         setSnackbarMessage("Password reset email sent successfully.");
         setSnackbarOpen(true); // Open the Snackbar
       } catch (error) {
-        setSnackbarMessage("Error sending password reset email: " + error.message);
+        setSnackbarMessage(
+          "Error sending password reset email: " + error.message
+        );
         setSnackbarOpen(true); // Open the Snackbar
       }
     }
@@ -151,9 +175,9 @@ const Team = () => {
           navigate("/login");
           return;
         }
-        
+
         const querySnapshot = await getDocs(collection(db, "Users"));
-        const data = querySnapshot.docs.map(doc => ({
+        const data = querySnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
@@ -166,8 +190,11 @@ const Team = () => {
         };
 
         // Sort data by 'accessLevel'
-        data.sort((a, b) => accessLevelOrder[a.accessLevel] - accessLevelOrder[b.accessLevel]);
-        
+        data.sort(
+          (a, b) =>
+            accessLevelOrder[a.accessLevel] - accessLevelOrder[b.accessLevel]
+        );
+
         setRows(data);
         setLoading(false);
       } catch (error) {
@@ -229,14 +256,13 @@ const Team = () => {
 
       <Dialog open={openDialog} onClose={handleCloseDialog}>
         <DialogTitle>
-          {dialogAction === 'resetPassword' ? "Reset Password" : ""}
+          {dialogAction === "resetPassword" ? "Reset Password" : ""}
         </DialogTitle>
         <DialogContent>
           <DialogContentText>
-            {dialogAction === 'resetPassword'
+            {dialogAction === "resetPassword"
               ? "Are you sure you want to reset the password for this user? A reset email will be sent to the user's email address."
-              : ""
-            }
+              : ""}
           </DialogContentText>
         </DialogContent>
         <DialogActions>
@@ -254,7 +280,10 @@ const Team = () => {
         autoHideDuration={6000}
         onClose={() => setSnackbarOpen(false)}
       >
-        <Alert onClose={() => setSnackbarOpen(false)} severity={error ? "error" : "success"}>
+        <Alert
+          onClose={() => setSnackbarOpen(false)}
+          severity={error ? "error" : "success"}
+        >
           {snackbarMessage}
         </Alert>
       </Snackbar>
