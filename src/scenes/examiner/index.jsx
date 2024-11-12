@@ -77,9 +77,9 @@ const Contacts = () => {
         passportScan: true,
       });
 
-      console.log("updated");
-      setAnchorEl(null);
-      setOpenBaggageDialog(false);
+      console.log("Passport scan updated");
+      setAnchorEl(null); // Close the menu after the action
+      setOpenBaggageDialog(false); // Close the baggage dialog if it's open
     } catch (error) {
       console.error("Error updating passport scan:", error);
     }
@@ -99,11 +99,11 @@ const Contacts = () => {
         faceRecognitionScan: true,
       });
 
-      console.log("updated");
-      setAnchorEl(null);
-      setOpenBaggageDialog(false);
+      console.log("Face recognition scan updated");
+      setAnchorEl(null); // Close the menu after the action
+      setOpenBaggageDialog(false); // Close the baggage dialog if it's open
     } catch (error) {
-      console.error("Error updating passport scan:", error);
+      console.error("Error updating face recognition scan:", error);
     }
   };
 
@@ -205,7 +205,7 @@ const createColumns = (setBaggageInfo, setOpenBaggageDialog, setAnchorEl) => [
   { field: "passportNumber", headerName: "Passport Number", flex: 1 },
   { field: "firstName", headerName: "First Name", flex: 1 },
   { field: "middleName", headerName: "Middle Name", flex: 1 },
-  { field: "lastName", headerName: "Last Name", flex: 1 },
+  { field: "surName", headerName: "Last Name", flex: 1 },
   { field: "gender", headerName: "Gender", flex: 1 },
   { field: "dateOfBirth", headerName: "Date of Birth", flex: 1 },
   { field: "nationality", headerName: "Nationality", flex: 1 },
@@ -215,8 +215,6 @@ const createColumns = (setBaggageInfo, setOpenBaggageDialog, setAnchorEl) => [
     field: "dateOfArrival",
     headerName: "Date of Arrival",
     flex: 1,
-    type: "date",
-    valueGetter: (params) => new Date(params.row.dateOfArrival),
   },
   {
     field: "passport",

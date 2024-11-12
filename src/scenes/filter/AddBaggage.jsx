@@ -20,7 +20,7 @@ import {
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { getFirestore, doc, setDoc } from "firebase/firestore";
-import { getStorage, ref, uploadString } from "firebase/storage";
+import { getStorage, ref, uploadString } from "firebase/storage"; // Storage functions
 import CloseIcon from "@mui/icons-material/Close";
 import IconButton from "@mui/material/IconButton";
 import { CircularProgress } from "@mui/material";
@@ -221,19 +221,17 @@ const AddBaggage = ({
   };
 
   const handleSubmit = async () => {
-    if (!validateFields()) {
-      setSnackbarOpen(true); // Open the Snackbar instead of alert
-      return;
-    }
-
-    setLoading(true);
-
     const db = getFirestore(); // Initialize Firestore
     const storage = getStorage(); // Initialize Storage
 
     // Log the values of baggageInfo to the console
     console.log("Passport Number:", baggageInfo.passportNumber);
     console.log("Baggage Info:", baggageInfo);
+
+    if (!validateFields()) {
+      setSnackbarOpen(true); // Open the Snackbar instead of alert
+      return;
+    }
 
     // Calculate the risk score
     // Calculate the risk score

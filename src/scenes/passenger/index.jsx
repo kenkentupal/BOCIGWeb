@@ -10,6 +10,7 @@ const PassengerForm = () => {
   const [numberOfEntries, setNumberOfEntries] = useState(1);
 
   const generateBaggageData = (passengerData) => {
+    const riskScore = Math.floor(Math.random() * 101); // Randomize risk score for each passenger
     return {
       airportArrival: faker.helpers.arrayElement([
         "NAIA",
@@ -49,10 +50,7 @@ const PassengerForm = () => {
         cremains: faker.datatype.boolean(),
         jewelry: faker.datatype.boolean(),
       },
-      dateOfArrival: faker.date
-        .between({ from: new Date("2020-01-01"), to: new Date() })
-        .toISOString()
-        .split("T")[0],
+      dateOfArrival: new Date().toISOString().split("T")[0],
       dateOfLastDeparture: faker.date
         .between({ from: new Date("2020-01-01"), to: new Date() })
         .toISOString()
@@ -102,22 +100,27 @@ const PassengerForm = () => {
       passportNumber: passengerData.passportNumber,
       firstName: passengerData.firstName,
       gender: passengerData.gender,
-      lastName: passengerData.lastName,
+      surName: passengerData.lastName,
       middleName: passengerData.middleName,
       nationality: passengerData.nationality,
       occupation: passengerData.occupation,
       placeIssued: passengerData.placeIssued,
       time: passengerData.time,
       profileImage: passengerData.profileImage,
+      riskScore: riskScore, // Now each passenger has a randomized risk score
     };
   };
 
   const generateFakeData = async () => {
     const passengerDataArray = Array.from({ length: numberOfEntries }, () => {
       const dateOfArrival = faker.date
-        .between({ from: new Date("2020-01-01"), to: new Date() })
+        .between({
+          from: new Date("01/01/2023"), // Start date: January 2023
+          to: new Date(), // End date: today's date
+        })
         .toISOString()
         .split("T")[0];
+
       const passportNumber = `P${faker.string.alphanumeric(8).toUpperCase()}`;
       const firstName = faker.name.firstName();
       const middleName = faker.name.middleName();
@@ -165,6 +168,7 @@ const PassengerForm = () => {
 
       // Generate baggage data using the passenger data
       const baggageData = generateBaggageData(passengerData);
+      baggageData.dateOfArrival = dateOfArrival; // Set randomized dateOfArrival
 
       return { baggageData, passengerData };
     });

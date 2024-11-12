@@ -2,47 +2,100 @@ import { useTheme } from "@mui/material";
 import { ResponsiveBar } from "@nivo/bar";
 import { tokens } from "../theme";
 import { useEffect, useState } from "react";
-import { getFirestore, collection, getDocs } from "firebase/firestore";
-import airportList from "../scenes/airportlist"; // Adjust path
 import {
-  Box,
-  Typography,
-  MenuItem,
-  Select,
-  FormControl,
-  InputLabel,
-  CircularProgress, // Import CircularProgress for loading icon
-} from "@mui/material";
+  getFirestore,
+  collection,
+  query,
+  where,
+  getDocs,
+} from "firebase/firestore";
+import airportList from "../scenes/airportlist";
+import { Box, Typography, CircularProgress } from "@mui/material";
 
-const BarChart = ({ isDashboard = false }) => {
+const BarChart = ({
+  isDashboard = false,
+  selectedMonth,
+  selectedYear,
+  selectedAirport,
+}) => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const [data, setData] = useState([]);
   const [years, setYears] = useState([]);
-  const [selectedYear, setSelectedYear] = useState(""); // "" means "All Years"
   const [totalDeclared, setTotalDeclared] = useState(0);
-  const [loading, setLoading] = useState(false); // New loading state
+  const [totalNotDeclared, setTotalNotDeclared] = useState(0);
+  const [loading, setLoading] = useState(false);
 
+  // Fetch available years
   useEffect(() => {
-    const fetchAirportArrivals = async () => {
-      setLoading(true); // Set loading to true when fetching starts
+    const fetchYears = async () => {
       const db = getFirestore();
       const arrivalsRef = collection(db, "BaggageInfo");
       const snapshot = await getDocs(arrivalsRef);
+      const yearSet = new Set();
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        const year = new Date(data.dateOfArrival).getFullYear();
+        yearSet.add(year);
+      });
+      setYears([...yearSet].sort());
+    };
 
-      let totalDeclarations = 0;
+    fetchYears();
+  }, []);
+
+  // Fetch airport arrivals based on selected filters
+  useEffect(() => {
+    const fetchAirportArrivals = async () => {
+      setLoading(true);
+      const db = getFirestore();
+      const arrivalsRef = collection(db, "BaggageInfo");
+
+      // Start building the query based on filters
+      let q = query(arrivalsRef);
+
+      // Filter by year if selectedYear is not "All years"
+      if (selectedYear && selectedYear !== "All years") {
+        q = query(q, where("dateOfArrival", ">=", `${selectedYear}-01-01`));
+      }
+
+      // Filter by month if selectedMonth is provided
+      if (selectedMonth && selectedMonth !== "All") {
+        const monthStr =
+          selectedMonth < 10 ? `0${selectedMonth}` : selectedMonth;
+        q = query(
+          q,
+          where("dateOfArrival", ">=", `${selectedYear}-${monthStr}-01`),
+          where("dateOfArrival", "<=", `${selectedYear}-${monthStr}-31`)
+        );
+      }
+
+      // Filter by airport if selectedAirport is provided
+      if (selectedAirport) {
+        q = query(q, where("airportArrival", "==", selectedAirport));
+      }
+
+      // Fetch data from Firestore
+      const snapshot = await getDocs(q);
+      let totalDeclaredCount = 0;
+      let totalNotDeclaredCount = 0;
       const arrivalsData = airportList.map((airport) => {
-        let withDeclaration = 0;
+        let declared = 0;
+        let notDeclared = 0;
 
-        snapshot.docs.forEach((doc) => {
+        snapshot.forEach((doc) => {
           const data = doc.data();
           const year = new Date(data.dateOfArrival).getFullYear();
 
-          if (selectedYear === "" || year === selectedYear) {
+          // If "All years" is selected, or the document matches the selected year
+          if (selectedYear === "All years" || year === parseInt(selectedYear)) {
             if (data.airportArrival === airport.code) {
               if (data.declaration === true) {
-                withDeclaration += data.arrivalCount || 1;
-                totalDeclarations += data.arrivalCount || 1;
+                declared += data.arrivalCount || 1;
+                totalDeclaredCount += data.arrivalCount || 1;
+              } else {
+                notDeclared += data.arrivalCount || 1;
+                totalNotDeclaredCount += data.arrivalCount || 1;
               }
             }
           }
@@ -50,61 +103,19 @@ const BarChart = ({ isDashboard = false }) => {
 
         return {
           country: airport.code,
-          Declared: withDeclaration,
+          Declared: declared,
+          NotDeclared: notDeclared,
         };
       });
 
-      setTotalDeclared(totalDeclarations);
+      setTotalDeclared(totalDeclaredCount);
+      setTotalNotDeclared(totalNotDeclaredCount);
       setData(arrivalsData);
-      setLoading(false); // Set loading to false once fetching is complete
+      setLoading(false);
     };
 
     fetchAirportArrivals();
-  }, [selectedYear]);
-
-  useEffect(() => {
-    const fetchYears = async () => {
-      const db = getFirestore();
-      const arrivalsRef = collection(db, "BaggageInfo");
-      const snapshot = await getDocs(arrivalsRef);
-
-      const yearSet = new Set();
-      snapshot.docs.forEach((doc) => {
-        const data = doc.data();
-        const year = new Date(data.dateOfArrival).getFullYear();
-        if (data.declaration === true) {
-          yearSet.add(year);
-        }
-      });
-
-      setYears([...yearSet]);
-    };
-
-    fetchYears();
-  }, []);
-
-  useEffect(() => {
-    if (years.length > 0) {
-      setSelectedYear("");
-    }
-  }, [years]);
-
-  if (loading) {
-    return (
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        height="250px"
-      >
-        <CircularProgress color="secondary" /> {/* Loading spinner */}
-      </Box>
-    );
-  }
-
-  if (data.length === 0) {
-    return <div>No data available.</div>;
-  }
+  }, [selectedMonth, selectedYear, selectedAirport]); // Re-fetch data when any of these values change
 
   return (
     <div style={{ height: "250px" }}>
@@ -120,132 +131,164 @@ const BarChart = ({ isDashboard = false }) => {
       >
         <Box>
           <Typography variant="h5" fontWeight="600" color={colors.grey[100]}>
-            All Baggage Declarations
+            Total Travel Frequency
           </Typography>
+
           <Typography
             variant="h3"
             fontWeight="bold"
             color={colors.greenAccent[500]}
           >
-            {totalDeclared}
+            {totalDeclared + totalNotDeclared}
           </Typography>
         </Box>
 
-        <Box display="flex" alignItems="center" gap="16px">
-          <FormControl variant="outlined" fullWidth>
-            <InputLabel>Year</InputLabel>
-            <Select
-              value={selectedYear}
-              onChange={(e) => setSelectedYear(e.target.value)}
-              label="Year"
-              style={{ width: "100px" }}
-            >
-              <MenuItem value="">All Years</MenuItem>
-              {years.map((year) => (
-                <MenuItem key={year} value={year}>
-                  {year}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+        <Box display="flex" alignItems="center" gap="8px">
+          <Typography variant="h6" fontWeight="600" color={colors.grey[100]}>
+            Declared:
+          </Typography>
+          <Typography
+            variant="h4"
+            fontWeight="bold"
+            color={colors.greenAccent[500]}
+          >
+            {totalDeclared}
+          </Typography>
+
+          <Typography variant="h6" fontWeight="600" color={colors.grey[100]}>
+            No Declaration:
+          </Typography>
+
+          <Typography
+            variant="h4"
+            fontWeight="bold"
+            color={colors.greenAccent[500]}
+          >
+            {totalNotDeclared}
+          </Typography>
         </Box>
       </div>
-      <ResponsiveBar
-        data={data}
-        theme={{
-          axis: {
-            domain: {
-              line: {
-                stroke: colors.grey[100],
-              },
-            },
-            legend: {
-              text: {
-                fill: colors.grey[100],
-              },
-            },
-            ticks: {
-              line: {
-                stroke: colors.grey[100],
-                strokeWidth: 1,
-              },
-              text: {
-                fill: colors.grey[100],
-              },
-            },
-          },
-          legends: {
-            text: {
-              fill: colors.grey[100],
-            },
-          },
-        }}
-        keys={["Declared"]}
-        indexBy="country"
-        margin={{ top: 20, right: 130, bottom: 80, left: 60 }}
-        padding={0.3}
-        valueScale={{ type: "linear" }}
-        indexScale={{ type: "band", round: true }}
-        colors={{ scheme: "nivo" }}
-        borderColor={{
-          from: "color",
-          modifiers: [["darker", "1.6"]],
-        }}
-        axisTop={null}
-        axisRight={null}
-        axisBottom={{
-          tickSize: 5,
-          tickPadding: 5,
-          tickRotation: 0,
-          legend: isDashboard ? undefined : "Airport",
-          legendPosition: "middle",
-          legendOffset: 32,
-        }}
-        axisLeft={{
-          tickSize: 5,
-          tickPadding: 5,
-          tickRotation: 0,
-          legend: isDashboard ? undefined : "Total Arrivals",
-          legendPosition: "middle",
-          legendOffset: -40,
-        }}
-        enableLabel={true}
-        labelSkipWidth={12}
-        labelSkipHeight={12}
-        labelTextColor={{
-          from: "color",
-          modifiers: [["darker", 1.6]],
-        }}
-        valueFormat=">-.0f"
-        legends={[
-          {
-            dataFrom: "keys",
-            anchor: "bottom-right",
-            direction: "column",
-            justify: false,
-            translateX: 120,
-            translateY: 0,
-            itemsSpacing: 2,
-            itemWidth: 100,
-            itemHeight: 20,
-            itemDirection: "left-to-right",
-            itemOpacity: 0.85,
-            symbolSize: 20,
-            effects: [
-              {
-                on: "hover",
-                style: {
-                  itemOpacity: 1,
+
+      {loading ? (
+        <Box
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          height="250px"
+        >
+          <CircularProgress color="secondary" />
+        </Box>
+      ) : data.length === 0 ? (
+        <Box
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          height="250px"
+        >
+          <Typography variant="h6" color={colors.grey[100]}>
+            No data
+          </Typography>
+        </Box>
+      ) : (
+        <ResponsiveBar
+          data={data}
+          theme={{
+            axis: {
+              domain: {
+                line: {
+                  stroke: colors.grey[100],
                 },
               },
-            ],
-          },
-        ]}
-        role="application"
-        barAriaLabel={(e) =>
-          `${e.id}: ${Math.round(e.formattedValue)} in airport: ${e.indexValue}`
-        }
-      />
+              legend: {
+                text: {
+                  fill: colors.grey[100],
+                },
+              },
+              ticks: {
+                line: {
+                  stroke: colors.grey[100],
+                  strokeWidth: 1,
+                },
+                text: {
+                  fill: colors.grey[100],
+                },
+              },
+            },
+            legends: {
+              text: {
+                fill: colors.grey[100],
+              },
+            },
+          }}
+          keys={["Declared", "NotDeclared"]}
+          indexBy="country"
+          margin={{ top: 20, right: 130, bottom: 80, left: 60 }}
+          padding={0.3}
+          valueScale={{ type: "linear" }}
+          indexScale={{ type: "band", round: true }}
+          colors={{ scheme: "nivo" }}
+          borderColor={{
+            from: "color",
+            modifiers: [["darker", "1.6"]],
+          }}
+          axisTop={null}
+          axisRight={null}
+          axisBottom={{
+            tickSize: 5,
+            tickPadding: 5,
+            tickRotation: 0,
+            legend: isDashboard ? undefined : "Airport",
+            legendPosition: "middle",
+            legendOffset: 32,
+          }}
+          axisLeft={{
+            tickSize: 5,
+            tickPadding: 5,
+            tickRotation: 0,
+            legend: isDashboard ? undefined : "Total Arrivals",
+            legendPosition: "middle",
+            legendOffset: -40,
+          }}
+          enableLabel={true}
+          labelSkipWidth={12}
+          labelSkipHeight={12}
+          labelTextColor={{
+            from: "color",
+            modifiers: [["darker", 1.6]],
+          }}
+          valueFormat=">-.0f"
+          legends={[
+            {
+              dataFrom: "keys",
+              anchor: "bottom-right",
+              direction: "column",
+              justify: false,
+              translateX: 120,
+              translateY: 0,
+              itemsSpacing: 2,
+              itemWidth: 100,
+              itemHeight: 20,
+              itemDirection: "left-to-right",
+              itemOpacity: 0.85,
+              symbolSize: 20,
+              effects: [
+                {
+                  on: "hover",
+                  style: {
+                    itemOpacity: 1,
+                  },
+                },
+              ],
+            },
+          ]}
+          role="application"
+          barAriaLabel={(e) =>
+            `${e.id}: ${Math.round(e.formattedValue)} in airport: ${
+              e.indexValue
+            }`
+          }
+        />
+      )}
     </div>
   );
 };

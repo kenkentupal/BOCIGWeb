@@ -20,8 +20,10 @@ import Login from "./scenes/login/Login";
 import Search from "./scenes/search";
 import Examiner from "./scenes/examiner";
 import Passenger from "./scenes/passenger";
+import Filter from "./scenes/filter";
 import { CssBaseline, ThemeProvider } from "@mui/material";
 import { ColorModeContext, useMode } from "./theme";
+import ConnectionStatus from "./ConnectionStatus"; // Import the component
 
 function App() {
   const [theme, colorMode] = useMode();
@@ -41,6 +43,7 @@ function App() {
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <div className="app">
+          <ConnectionStatus /> {/* Display the connection status pop-up */}
           {isAuthenticated ? (
             <>
               <Sidebar isSidebar={isSidebar} />
@@ -60,6 +63,7 @@ function App() {
                   <Route path="/pie" element={<Pie />} />
                   <Route path="/line" element={<Line />} />
                   <Route path="/faq" element={<FAQ />} />
+                  <Route path="/filter" element={<Filter />} />
                   <Route path="/calendar" element={<Calendar />} />
                   <Route path="/geography" element={<Geography />} />
                   <Route path="*" element={<Navigate to="/" />} />

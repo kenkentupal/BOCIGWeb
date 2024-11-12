@@ -1,0 +1,19 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "BaggageInfo",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "airportArrival",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "dateOfArrival",
+          "order": "ASCENDING"
+        }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

@@ -2,55 +2,53 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="%PUBLIC_URL%/ciis.png" />
+    <!-- Viewport meta tag to simulate desktop mode on mobile, and allow rotation -->
+    <meta
+      name="viewport"
+      content="width=1024, initial-scale=1, user-scalable=no"
+    />
     <meta name="theme-color" content="#000000" />
-    <meta name="description" content="Web site created using create-react-app" />
-    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+    <meta
+      name="description"
+      content="Web site created using create-react-app"
+    />
+    <link rel="apple-touch-icon" href="%PUBLIC_URL%/ciis.png" />
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
     <title>Bureau of Customs</title>
-    
+
     <style>
-      /* Style for the mobile warning */
+      /* Ensure the layout behaves like a desktop app on mobile */
       body {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
         margin: 0;
         font-family: Arial, sans-serif;
       }
-      .mobile-warning {
-        display: none; /* Hide warning by default */
-        text-align: center;
-        padding: 20px;
-        background-color: #f8d7da;
-        color: #721c24;
-        font-size: 18px;
+
+      /* Force the React app to behave as if it's on a desktop */
+      #root {
+        display: block;
+        width: 1024px; /* Enforce a fixed width for desktop layout */
+        margin: 0 auto;
       }
 
-      /* Media query to show warning for small screens */
+      /* Handle rotation for mobile devices, keeping desktop view */
       @media (max-width: 1024px) {
-        #root {
-          display: none; /* Hide React app */
+        body {
+          overflow-x: hidden; /* Prevent horizontal scrolling */
         }
-        .mobile-warning {
-          display: block; /* Show warning */
+
+        #root {
+          width: 100vw; /* Make sure the content takes up the full width in portrait mode */
         }
       }
     </style>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
-    
-    <!-- Warning message for mobile users -->
-    <div class="mobile-warning">
-      <p>This application is available only on desktop. Please access it on a larger screen.</p>
-    </div>
 
     <!-- React app root element -->
     <div id="root"></div>
-    
+
     <!-- JavaScript Firebase SDK -->
     <script defer src="/__/firebase/11.0.1/firebase-app-compat.js"></script>
     <script defer src="/__/firebase/init.js"></script>

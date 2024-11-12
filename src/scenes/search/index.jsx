@@ -27,11 +27,11 @@ import { db } from "../../Firebase";
 import Header from "../../components/Header";
 import { tokens } from "../../theme";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
-import CloseIcon from "@mui/icons-material/Close";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import AddBaggage from "./AddBaggage";
 import ViewBaggage from "./ViewBaggage";
 import SearchIcon from "@mui/icons-material/Search";
+import { CircularProgress } from "@mui/material";
 
 const Contacts = () => {
   const [data, setData] = useState([]);
@@ -50,6 +50,7 @@ const Contacts = () => {
   const [openBaggageForm, setOpenBaggageForm] = useState(false);
   const [openBaggageList, setOpenBaggageList] = useState(false);
   const [selectedPassportNumber, setSelectedPassportNumber] = useState("");
+  const [loading, setLoading] = useState(true);
 
   const columns = createColumns(
     storage,
@@ -60,10 +61,9 @@ const Contacts = () => {
   );
 
   useEffect(() => {
-    // Set up a Firestore listener for real-time updates
-    const unsubscribe = onSnapshot(
-      collection(db, "ResultTable"),
-      (querySnapshot) => {
+    const fetchData = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, "ResultTable"));
         const fetchedData = querySnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
@@ -76,14 +76,14 @@ const Contacts = () => {
 
         setData(sortedData);
         setFilteredData(sortedData); // Set both data and filtered data
-      },
-      (error) => {
+        setLoading(false); // Set loading to false after data fetch
+      } catch (error) {
         console.error("Error fetching Firestore data: ", error);
+        setLoading(false); // Set loading to false on error
       }
-    );
+    };
 
-    // Cleanup subscription on unmount
-    return () => unsubscribe();
+    fetchData();
   }, []);
 
   const fetchData = async () => {
@@ -126,7 +126,7 @@ const Contacts = () => {
 
   const handleSearch = () => {
     const filtered = data.filter((item) =>
-      String(item["Document Number"] || "")
+      String(item["passportNumber"] || "")
         .toLowerCase()
         .includes(searchQuery.toLowerCase())
     );
@@ -134,7 +134,7 @@ const Contacts = () => {
     setNewPassenger((prevState) => ({
       ...prevState,
       passportNumber:
-        filtered.length > 0 ? filtered[0]["Document Number"] : searchQuery,
+        filtered.length > 0 ? filtered[0]["passportNumber"] : searchQuery,
     }));
 
     if (filtered.length === 0 && searchQuery) {
@@ -187,7 +187,7 @@ const Contacts = () => {
       gender: newPassenger.gender,
       lastName: newPassenger.surname,
       middleName: newPassenger.middleName,
-      mationality: newPassenger.nationality,
+      nationality: newPassenger.nationality,
       occupation: newPassenger.occupation,
       placeIssued: newPassenger.placeIssued,
       time: new Date().toISOString(), // Ensure the time is in the correct format
@@ -231,11 +231,22 @@ const Contacts = () => {
         theme={theme}
         colors={colors}
       />
-      <DataGridContainer
-        filteredData={filteredData}
-        colors={colors}
-        columns={columns}
-      />
+      {loading ? (
+        <Box
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          height="75vh"
+        >
+          <CircularProgress />
+        </Box>
+      ) : (
+        <DataGridContainer
+          filteredData={filteredData}
+          colors={colors}
+          columns={columns}
+        />
+      )}
       <ConfirmationDialog
         open={openConfirmation}
         setOpen={setOpenConfirmation}
@@ -342,14 +353,7 @@ const createColumns = (
   { field: "nationality", headerName: "Nationality", flex: 1 },
   { field: "placeIssued", headerName: "Place Issued", flex: 1 },
   { field: "occupation", headerName: "Occupation", flex: 1 },
-  {
-    field: "time",
-    headerName: "Time",
-    flex: 1,
-    type: "dateTime",
-    valueGetter: ({ value }) => value && new Date(value),
-    sortDirection: "desc",
-  }, // Add Time column
+
   {
     field: "actions",
     headerName: "",

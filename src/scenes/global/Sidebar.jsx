@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { ProSidebar, Menu, MenuItem } from "react-pro-sidebar";
+import FilterListIcon from "@mui/icons-material/FilterList";
 import {
   Box,
   IconButton,
@@ -103,6 +104,10 @@ const Sidebar = () => {
       sx={{
         "& .pro-sidebar-inner": {
           background: `${colors.primary[400]} !important`,
+          position: "fixed", // Make the sidebar fixed
+          height: "100vh", // Full height of the viewport
+          zIndex: 1000, // Ensure it stays above other content
+          width: isCollapsed ? "80px" : "250px", // Adjust width when collapsed
         },
         "& .pro-icon-wrapper": {
           backgroundColor: "transparent !important",
@@ -184,6 +189,7 @@ const Sidebar = () => {
                 selected={selected}
                 setSelected={setSelected}
               />
+              {/*
               <Item
                 title="Analysis"
                 to="/analysis"
@@ -191,7 +197,15 @@ const Sidebar = () => {
                 selected={selected}
                 setSelected={setSelected}
               />
+              */}
 
+              <Item
+                title="Filter"
+                to="/filter"
+                icon={<FilterListIcon />} // Use the filter icon here
+                selected={selected}
+                setSelected={setSelected}
+              />
               <Typography
                 variant="h6"
                 color={colors.grey[300]}
@@ -303,6 +317,7 @@ const Sidebar = () => {
                 setSelected={setSelected}
               />
 
+              {/* 
               <Typography
                 variant="h6"
                 color={colors.grey[300]}
@@ -338,6 +353,8 @@ const Sidebar = () => {
                 selected={selected}
                 setSelected={setSelected}
               />
+
+              */}
             </Box>
           )}
         </Menu>

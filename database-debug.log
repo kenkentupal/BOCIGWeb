@@ -1,0 +1,4 @@
+13:51:13.396 [NamespaceSystem-akka.actor.default-dispatcher-5] INFO akka.event.slf4j.Slf4jLogger - Slf4jLogger started
+13:51:13.736 [main] INFO com.firebase.server.forge.App$ - Listening at 127.0.0.1:9000
+13:51:45.800 [NamespaceSystem-akka.actor.default-dispatcher-5] INFO com.firebase.core.namespace.NamespaceActor - facialrecognition-4bee2-default-rtdb successfully activated FBKV (SurveyIdle(0)) wait: 303ms, init: 0ms
+13:51:46.017 [NamespaceSystem-blocking-namespace-operation-dispatcher-7] INFO com.firebase.core.namespace.StateManager - Namespace facialrecognition-4bee2-default-rtdb status Active to Active

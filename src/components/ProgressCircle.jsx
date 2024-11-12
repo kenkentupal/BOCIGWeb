@@ -1,21 +1,38 @@
-import { Box, useTheme } from "@mui/material";
-import { tokens } from "../theme";
+import { Box } from "@mui/material";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import WarningIcon from "@mui/icons-material/Warning";
+import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 
-const ProgressCircle = ({ progress = "0.75", size = "40" }) => {
-  const theme = useTheme();
-  const colors = tokens(theme.palette.mode);
-  const angle = progress * 360;
+const ProgressCircle = ({ riskLevel }) => {
+  let IconComponent;
+  let color;
+
+  if (riskLevel === "low") {
+    IconComponent = CheckCircleIcon; // Green for low risk
+    color = "green";
+  } else if (riskLevel === "medium") {
+    IconComponent = WarningIcon; // Orange for medium risk
+    color = "orange";
+  } else if (riskLevel === "high") {
+    IconComponent = ErrorOutlineIcon; // Red for high risk
+    color = "red";
+  }
+
   return (
     <Box
       sx={{
-        background: `radial-gradient(${colors.primary[400]} 55%, transparent 56%),
-            conic-gradient(transparent 0deg ${angle}deg, ${colors.blueAccent[500]} ${angle}deg 360deg),
-            ${colors.greenAccent[500]}`,
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        width: 30,
+        height: 30,
         borderRadius: "50%",
-        width: `${size}px`,
-        height: `${size}px`,
+        backgroundColor: color,
+        boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
       }}
-    />
+    >
+      <IconComponent sx={{ fontSize: 20, color: "white" }} />
+    </Box>
   );
 };
 
